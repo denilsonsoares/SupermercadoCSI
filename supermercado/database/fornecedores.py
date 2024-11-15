@@ -51,3 +51,93 @@ def insert_new_lote(connection, lote):
     cursor.execute(query, data)
     connection.commit()
     return cursor.lastrowid
+
+
+def update_lote(connection, lote_id, updated_data):
+    """
+    Atualiza os dados de um lote.
+    :param updated_data: Dicionário com os campos a serem atualizados:
+        Exemplo: {'preco_de_compra': 120.0, 'quantidade_por_udm': 60}
+    """
+    set_clause = ", ".join([f"{key} = %s" for key in updated_data.keys()])
+    query = f"UPDATE Lotes_comprados SET {set_clause} WHERE id = %s;"
+    data = list(updated_data.values()) + [lote_id]
+
+    cursor = connection.cursor()
+    cursor.execute(query, data)
+    connection.commit()
+    return cursor.rowcount
+
+def delete_lote(connection, lote_id):
+    """
+    Remove um lote pelo ID.
+    """
+    try:
+        query = "DELETE FROM Lotes_comprados WHERE id = %s;"
+        cursor = connection.cursor()
+        cursor.execute(query, (lote_id,))
+        connection.commit()
+        return cursor.rowcount
+    except Exception as e:
+        print(f"Erro ao deletar lote: {e}")
+        return 0
+
+if __name__ == "__main__":
+    from sql_connection import get_sql_connection
+
+    connection = get_sql_connection()
+
+    # Testando inserção de novos lotes
+    print("\n### INSERINDO NOVOS LOTES ###")
+    new_lote1 = {
+        'produto_id': 1,  # Certifique-se de que este ID de produto existe
+        'preco_de_compra': 100.0,
+        'data_de_fabricacao': '2024-01-01',
+        'data_de_vencimento': '2025-01-01',
+        'quantidade_por_udm': 50,
+        'fornecedor': 1  # Certifique-se de que este ID de fornecedor existe
+    }
+    new_lote2 = {
+        'produto_id': 2,  # Certifique-se de que este ID de produto existe
+        'preco_de_compra': 200.0,
+        'data_de_fabricacao': '2024-06-01',
+        'data_de_vencimento': '2026-06-01',
+        'quantidade_por_udm': 100,
+        'fornecedor': 1
+    }
+    lote_id1 = insert_new_lote(connection, new_lote1)
+    lote_id2 = insert_new_lote(connection, new_lote2)
+    print(f"Lotes inseridos com IDs: {lote_id1}, {lote_id2}")
+
+    # Testando listagem de lotes
+    print("\n### LISTANDO TODOS OS LOTES ###")
+    lotes = get_all_lotes(connection)
+    for lote in lotes:
+        print(lote)
+
+    # Testando atualização de um lote
+    print("\n### ATUALIZANDO UM LOTE ###")
+    updated_data = {
+        'preco_de_compra': 150.0,
+        'quantidade_por_udm': 75
+    }
+    rows_updated = update_lote(connection, lote_id1, updated_data)
+    print(f"Número de lotes atualizados: {rows_updated}")
+
+    # Listando novamente para verificar atualização
+    print("\n### LOTES APÓS ATUALIZAÇÃO ###")
+    lotes = get_all_lotes(connection)
+    for lote in lotes:
+        print(lote)
+
+    # Testando exclusão de lotes
+    print("\n### EXCLUINDO LOTES ###")
+    rows_deleted1 = delete_lote(connection, lote_id1)
+    rows_deleted2 = delete_lote(connection, lote_id2)
+    print(f"Número de lotes deletados: {rows_deleted1 + rows_deleted2}")
+
+    # Listando novamente para verificar exclusão
+    print("\n### LOTES APÓS EXCLUSÃO ###")
+    lotes = get_all_lotes(connection)
+    for lote in lotes:
+        print(lote)

@@ -9,7 +9,7 @@ def get_all_products(connection):
         Produtos.Produto,
         Marcas.nome_da_marca,
         Tipos_de_produto.tipo,
-        Unidades_de_medida.char AS unidade_de_medida,
+        Unidades_de_medida.unidade AS unidade_de_medida,
         Produtos.preco_por_unidade
     FROM Produtos
     JOIN Marcas ON Produtos.Marca_id = Marcas.id
@@ -87,27 +87,27 @@ if __name__ == "__main__":
     for product in get_all_products(connection):
         print(product)
 
-    # Testando insert_new_product
-    new_product = {
-        'Produto': 'Produto Teste',
-        'Marca_id': 1,
-        'tipo_id': 2,
-        'unidade_de_medida_id': 3,
-        'preco_por_unidade': 15.99
-    }
-    product_id = insert_new_product(connection, new_product)
-    # print(f"Produto inserido com ID: {product_id}")
-
-    # Testando update_product
-    update_data = {'Produto': 'Produto Atualizado', 'preco_por_unidade': 19.99}
-    rows_updated = update_product(connection, product_id, update_data)
-    print(f"Número de produtos atualizados: {rows_updated}")
-
-    # Testando get_all_products
-    print("Lista de Produtos:")
-    for product in get_all_products(connection):
-        print(product)
-
-    # Testando delete_product
-    rows_deleted = delete_product(connection, product_id)
-    print(f"Número de produtos deletados: {rows_deleted}")
+    # # Testando insert_new_product
+    # new_product = {
+    #     'Produto': 'Produto Teste',
+    #     'Marca_id': 1,
+    #     'tipo_id': 2,
+    #     'unidade_de_medida_id': 3,
+    #     'preco_por_unidade': 15.99
+    # }
+    # product_id = insert_new_product(connection, new_product)
+    # # print(f"Produto inserido com ID: {product_id}")
+    #
+    # # Testando update_product
+    # update_data = {'Produto': 'Produto Atualizado', 'preco_por_unidade': 19.99}
+    # rows_updated = update_product(connection, product_id, update_data)
+    # print(f"Número de produtos atualizados: {rows_updated}")
+    #
+    # # Testando get_all_products
+    # print("Lista de Produtos:")
+    # for product in get_all_products(connection):
+    #     print(product)
+    #
+    # # Testando delete_product
+    # rows_deleted = delete_product(connection, product_id)
+    # print(f"Número de produtos deletados: {rows_deleted}")
