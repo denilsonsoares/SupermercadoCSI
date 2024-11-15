@@ -1,3 +1,5 @@
 Django
 djangorestframework
 psycopg2
+mysql
+mysql-connector-python
