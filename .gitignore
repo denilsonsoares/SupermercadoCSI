@@ -1,0 +1,7 @@
+# Ambientes virtuais Python
+venv/
+env/
+.venv/
+.env/
+supermercado/Lib/
+/supermercado/Scripts/
