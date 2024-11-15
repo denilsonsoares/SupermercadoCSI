@@ -52,7 +52,7 @@ def buscar_unidades():
         conexao = conectar_banco()
         if conexao:
             cursor = conexao.cursor()
-            cursor.execute("SELECT id, char FROM Unidades_de_medida")
+            cursor.execute("SELECT id, unidade FROM unidades_de_medida")
             unidades = cursor.fetchall()
             conexao.close()
             return [f"{u[0]} - {u[1]}" for u in unidades]
