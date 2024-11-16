@@ -8,7 +8,7 @@ def conectar_banco():
         conexao = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Banana33@5",
+            password="Banco!23",
             database="quase_tudo"
         )
         return conexao
@@ -78,7 +78,7 @@ def buscar_produtos(nome_produto):
         conexao.close()
 
 
-def registrar_venda(vendedor_id, cliente_id, itens):
+def registrar_venda(vendedor_id, cliente_id, itens, modo_pagamento):
     """
     Registra uma venda no banco de dados.
     """
@@ -91,9 +91,9 @@ def registrar_venda(vendedor_id, cliente_id, itens):
 
         # Registrar a venda
         cursor.execute('''
-            INSERT INTO vendas (vendedor_id, cliente_id, data_hora)
-            VALUES (%s, %s, NOW())
-        ''', (vendedor_id, cliente_id))
+            INSERT INTO vendas (vendedor_id, cliente_id, data_hora, modo_pagamento)
+            VALUES (%s, %s, NOW(),%s)
+        ''', (vendedor_id, cliente_id, modo_pagamento))
         venda_id = cursor.lastrowid
 
         # Registrar os itens vendidos

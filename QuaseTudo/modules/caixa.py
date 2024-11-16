@@ -195,7 +195,7 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
 
     pagamento_var.trace_add("write", atualizar_pagamento)
 
-    formas_pagamento = [("Dinheiro", "Dinheiro"), ("Débito", "Débito"), ("Crédito", "Crédito"), ("Crediário", "Crediário")]
+    formas_pagamento = [("Dinheiro", "Dinheiro"), ("Débito","Débito"), ("Crédito", "Crédito"), ("Crediário", "Crediário")]
     for texto, valor in formas_pagamento:
         tk.Radiobutton(
             pagamento_frame,
@@ -245,7 +245,14 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
                 }
             )
 
-        sucesso = registrar_venda(vendedor_id, cliente_id, itens)
+        forma_pagamento = {
+            "Dinheiro": 1,
+            "Débito": 2,
+            "Crédito": 3,
+            "Crediário": 4
+        }
+
+        sucesso = registrar_venda(vendedor_id, cliente_id, itens, forma_pagamento[pagamento_var.get()])
         if sucesso:
             messagebox.showinfo("Sucesso", "Venda registrada com sucesso!")
             exibir_realizar_venda(frame_conteudo, vendedor_id)
