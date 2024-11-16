@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import mysql.connector
-from modules.database import conectar_banco
+from .database import conectar_banco
 
 # Função para verificar login
 def verificar_login(callback_login, login_window, event=None):

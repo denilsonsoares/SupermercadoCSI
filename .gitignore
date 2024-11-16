@@ -7,3 +7,5 @@ supermercado/Lib/
 /supermercado/Scripts/
 QuaseTudo/Lib/
 QuaseTudo/Scripts/
+*.pyc
+*.pyc
