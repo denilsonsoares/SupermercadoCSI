@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 from PIL import Image, ImageTk
-from modules.database import buscar_produtos, buscar_lotes, registrar_venda, buscar_nome_marca_por_id, buscar_nome_tipo_por_id, buscar_historico_vendas,obter_id_por_nome
+from .database import *
 
 # Caminho base relativo
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -419,7 +419,7 @@ def exibir_historico_vendas(frame_conteudo, vendedor_id):
     scrollbar.pack(side="right", fill="y")
 
     # Simular busca de dados no banco de dados (substitua com sua lógica de consulta ao MySQL)
-    from modules.database import buscar_historico_vendas
+    from .database import buscar_historico_vendas
     vendas = buscar_historico_vendas(vendedor_id)
 
     for venda in vendas:
