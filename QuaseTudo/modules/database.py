@@ -1,23 +1,33 @@
 import mysql.connector
 from mysql.connector import Error
 from tkinter import messagebox
+import atexit
 
+# Variável global para a conexão com o banco de dados
+conexao_global = None
 
-
-# Função para conectar ao banco de dados MySQL
 def conectar_banco():
+    global conexao_global
     try:
-        conexao = mysql.connector.connect(
-            host="192.168.50.47",
-            user="root",
-            password="Banana33@5",
-            database="quase_tudo"
-        )
-        return conexao
+        if conexao_global is None or not conexao_global.is_connected():
+            conexao_global = mysql.connector.connect(
+                host="192.168.50.47",
+                user="root",
+                password="Banana33@5",
+                database="quase_tudo"
+            )
+        return conexao_global
     except Error as err:
         messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {err}")
         return None
 
+# Função para fechar a conexão global ao sair
+def fechar_conexao_global():
+    global conexao_global
+    if conexao_global is not None and conexao_global.is_connected():
+        conexao_global.close()
+
+atexit.register(fechar_conexao_global)
 
 # Função para adicionar um produto ao estoque
 def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade):
@@ -37,7 +47,7 @@ def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_
         print(f"Erro ao adicionar produto: {e}")
         return False
     finally:
-        conexao.close()
+        cursor.close()
 
 
 # Função para remover um produto pelo nome
@@ -55,7 +65,7 @@ def remover_produto(nome_produto):
         print(f"Erro ao remover produto: {e}")
         return False
     finally:
-        conexao.close()
+        cursor.close()
 
 
 # Função para buscar produtos pelo nome
@@ -77,7 +87,7 @@ def buscar_produtos(nome_produto):
         print(f"Erro ao buscar produtos: {e}")
         return []
     finally:
-        conexao.close()
+        cursor.close()
 
 def buscar_lotes(lote_id, produto_id):
     conexao = conectar_banco()
@@ -97,7 +107,7 @@ def buscar_lotes(lote_id, produto_id):
         print(f"Erro ao buscar lotes: {e}")
         return []
     finally:
-        conexao.close()
+        cursor.close()
 
 
 def registrar_venda(vendedor_id, cliente_id, itens):
@@ -131,7 +141,7 @@ def registrar_venda(vendedor_id, cliente_id, itens):
         print(f"Erro ao registrar venda: {e}")
         return False
     finally:
-        conexao.close()
+        cursor.close()
 
 
 
@@ -149,7 +159,7 @@ def buscar_marcas(nome_marca):
         print(f"Erro ao buscar marcas: {e}")
         return []
     finally:
-        conexao.close()
+        cursor.close()
 
 
 def buscar_tipos(nome_tipo):
@@ -165,7 +175,7 @@ def buscar_tipos(nome_tipo):
         print(f"Erro ao buscar tipos: {e}")
         return []
     finally:
-        conexao.close()
+        cursor.close()
 
 
 def buscar_nome_marca_por_id(marca_id):
@@ -182,7 +192,7 @@ def buscar_nome_marca_por_id(marca_id):
         print(f"Erro ao buscar nome da marca: {e}")
         return None
     finally:
-        conexao.close()
+        cursor.close()
 
 
 def buscar_nome_tipo_por_id(tipo_id):
@@ -199,7 +209,7 @@ def buscar_nome_tipo_por_id(tipo_id):
         print(f"Erro ao buscar nome do tipo: {e}")
         return None
     finally:
-        conexao.close()
+        cursor.close()
 
 
 def buscar_unidades(nome_unidade):
@@ -215,7 +225,7 @@ def buscar_unidades(nome_unidade):
         print(f"Erro ao buscar unidades: {e}")
         return []
     finally:
-        conexao.close()
+        cursor.close()
 
 
 # Função para obter o ID correspondente ao nome
@@ -233,7 +243,7 @@ def obter_id_por_nome(tabela, coluna_nome, nome):
         print(f"Erro ao obter ID por nome: {e}")
         return None
     finally:
-        conexao.close()
+        cursor.close()
 
 def buscar_historico_vendas(vendedor_id):
     conexao = conectar_banco()
@@ -258,7 +268,7 @@ def buscar_historico_vendas(vendedor_id):
         print(f"Erro ao buscar histórico de vendas: {err}")
         return []
     finally:
-        conexao.close()
+        cursor.close()
 
 def resumo_vendas(periodo='dia'):
     """
@@ -297,7 +307,7 @@ def resumo_vendas(periodo='dia'):
         return None
     finally:
         cursor.close()
-        conexao.close()
+
 
 def top_produtos_vendidos(periodo='dia', limite=5):
     """
@@ -338,7 +348,7 @@ def top_produtos_vendidos(periodo='dia', limite=5):
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 # Funções para Gestão de Clientes
 
@@ -360,7 +370,7 @@ def cadastrar_cliente(nome, cpf, telefone):
         return False
     finally:
         cursor.close()
-        conexao.close()
+
 
 def atualizar_cliente(cliente_id, nome, cpf, telefone):
     conexao = conectar_banco()
@@ -381,7 +391,7 @@ def atualizar_cliente(cliente_id, nome, cpf, telefone):
         return False
     finally:
         cursor.close()
-        conexao.close()
+
 
 def excluir_cliente(cliente_id):
     conexao = conectar_banco()
@@ -398,7 +408,7 @@ def excluir_cliente(cliente_id):
         return False
     finally:
         cursor.close()
-        conexao.close()
+
 
 def clientes_compras_recentes(dias=30):
     """
@@ -423,7 +433,7 @@ def clientes_compras_recentes(dias=30):
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 # Funções para Fornecedores
 
@@ -451,7 +461,7 @@ def historico_entregas_fornecedor(fornecedor_id):
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 def total_lotes_por_fornecedor():
     """
@@ -477,7 +487,7 @@ def total_lotes_por_fornecedor():
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 # Funções para Estoque
 
@@ -506,7 +516,7 @@ def produtos_com_menor_estoque(limite=10):
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 def produtos_proximos_vencimento(dias=30):
     """
@@ -532,7 +542,7 @@ def produtos_proximos_vencimento(dias=30):
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 def quantidade_inicial_e_restante_lotes():
     """
@@ -556,7 +566,7 @@ def quantidade_inicial_e_restante_lotes():
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 # Funções para Gestão de Usuários
 
@@ -578,7 +588,7 @@ def adicionar_usuario(username, senha, perfil):
         return False
     finally:
         cursor.close()
-        conexao.close()
+
 
 def editar_usuario(usuario_id, username, senha, perfil):
     conexao = conectar_banco()
@@ -599,7 +609,7 @@ def editar_usuario(usuario_id, username, senha, perfil):
         return False
     finally:
         cursor.close()
-        conexao.close()
+
 
 def excluir_usuario(usuario_id):
     conexao = conectar_banco()
@@ -633,7 +643,7 @@ def listar_usuarios():
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 # Funções para Gestão de Produtos
 
@@ -659,7 +669,7 @@ def atualizar_preco_produto(produto_id, novo_preco):
         return False
     finally:
         cursor.close()
-        conexao.close()
+
 
 def consultar_produtos(filtro_marca=None, filtro_tipo=None, filtro_estoque=False):
     conexao = conectar_banco()
@@ -697,7 +707,7 @@ def consultar_produtos(filtro_marca=None, filtro_tipo=None, filtro_estoque=False
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 def visualizar_lotes_produto(produto_id):
     conexao = conectar_banco()
@@ -718,7 +728,7 @@ def visualizar_lotes_produto(produto_id):
         return []
     finally:
         cursor.close()
-        conexao.close()
+
 
 
 

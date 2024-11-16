@@ -352,7 +352,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
                     cursor.execute("SELECT senha FROM usuarios WHERE id = %s", (usuario_id,))
                     senha = cursor.fetchone()[0]
                     cursor.close()
-                    conexao.close()
+                    
                 if editar_usuario(usuario_id, username, senha, perfil):
                     messagebox.showinfo("Sucesso", "Usuário atualizado com sucesso!")
                     janela_editar.destroy()

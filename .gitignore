@@ -13,3 +13,6 @@ QuaseTudo/Scripts/
 *.pyc
 *.pyc
 /QuaseTudo/modules/__pycache__
+*.pyc
+/QuaseTudo/modules/__pycache__
+/QuaseTudo/modules/__pycache__

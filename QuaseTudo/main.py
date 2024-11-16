@@ -8,6 +8,8 @@ from modules.database import conectar_banco
 # Função para obter dados do usuário no banco de dados MySQL
 def obter_dados_usuario(username, perfil):
     conexao = conectar_banco()
+    if conexao is None:
+        return ("", "")
     cursor = conexao.cursor()
     try:
         cursor.execute("SELECT username, id FROM usuarios WHERE username=%s AND perfil=%s", (username, perfil))
@@ -15,7 +17,7 @@ def obter_dados_usuario(username, perfil):
         return result if result else ("", "")
     finally:
         cursor.close()
-        conexao.close()
+
 
 # Função para abrir a tela de perfil com base no perfil do usuário
 def abrir_tela_perfil(perfil, username):
