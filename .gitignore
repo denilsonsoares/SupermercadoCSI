@@ -9,3 +9,7 @@ QuaseTudo/Lib/
 QuaseTudo/Scripts/
 *.pyc
 *.pyc
+*.pyc
+*.pyc
+*.pyc
+/QuaseTudo/modules/__pycache__
