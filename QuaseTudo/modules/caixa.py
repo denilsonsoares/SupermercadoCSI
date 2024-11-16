@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 from PIL import Image, ImageTk
-from modules.database import buscar_produtos, registrar_venda, buscar_nome_marca_por_id, buscar_nome_tipo_por_id, buscar_historico_vendas,obter_id_por_nome
+from modules.database import buscar_produtos, buscar_lotes, registrar_venda, buscar_nome_marca_por_id, buscar_nome_tipo_por_id, buscar_historico_vendas,obter_id_por_nome
 
 # Caminho base relativo
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -91,12 +91,94 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
                         lambda e, p=produto: adicionar_produto_selecionado(p),
                     )
 
+        # def adicionar_produto_selecionado(produto):
+        #     def confirmar_quantidade():
+        #         try:
+        #             quantidade = int(quantidade_entry.get())
+        #             if quantidade <= 0:
+        #                 raise ValueError("Quantidade deve ser maior que zero.")
+        #
+        #             produto_nome = produto[1]
+        #             produto_marca = buscar_nome_marca_por_id(produto[2])
+        #             produto_tipo = buscar_nome_tipo_por_id(produto[3])
+        #             produto_preco = produto[4]
+        #             total = quantidade * produto_preco
+        #
+        #             tabela.insert(
+        #                 "",
+        #                 "end",
+        #                 values=(produto_nome, produto_marca, produto_tipo, quantidade, f"{produto_preco:.2f}", f"{total:.2f}"),
+        #             )
+        #
+        #             atualizar_totais(tabela, total_valor, avista_valor, pagamento_var)
+        #             pesquisa_window.destroy()
+        #         except ValueError as e:
+        #             messagebox.showerror("Erro", f"Quantidade inválida: {e}")
+        #
+        #     quantidade_window = tk.Toplevel(pesquisa_window)
+        #     quantidade_window.title("Quantidade")
+        #     quantidade_window.geometry("300x200")
+        #     quantidade_window.configure(bg="white")
+        #
+        #     tk.Label(
+        #         quantidade_window, text=f"Produto: {produto[1]}", font=("Arial", 12), bg="white"
+        #     ).pack(pady=10)
+        #
+        #     tk.Label(
+        #         quantidade_window, text="Digite a quantidade:", font=("Arial", 12), bg="white"
+        #     ).pack(pady=5)
+        #
+        #     quantidade_entry = tk.Entry(quantidade_window, font=("Arial", 12))
+        #     quantidade_entry.pack(pady=10)
+        #     quantidade_entry.insert(0, "1")
+        #
+        #     tk.Button(
+        #         quantidade_window,
+        #         text="Confirmar",
+        #         font=("Arial", 12),
+        #         bg="green",
+        #         fg="white",
+        #         command=confirmar_quantidade,
+        #     ).pack(pady=10)
+
         def adicionar_produto_selecionado(produto):
+            def buscar_e_exibir_lotes(event=None):
+                lote_id = lote_entry.get().strip()
+                produto_id = produto[0]  # ID do produto vindo do banco de dados
+
+                # Buscar lotes mesmo que o ID esteja vazio
+                lotes = buscar_lotes(lote_id, produto_id)
+
+                # Limpar a lista
+                lotes_lista.delete(0, tk.END)
+
+                if lotes:
+                    for lote in lotes:
+                        # Formato: ID - Quantidade - Validade - Fornecedor
+                        lotes_lista.insert(
+                            tk.END,
+                            f"{lote[0]} - {lote[1]} unidades - Vence em {lote[3]} - {lote[4]}"
+                        )
+                else:
+                    lotes_lista.insert(tk.END, "Nenhum lote encontrado.")
+
             def confirmar_quantidade():
                 try:
+                    # Verificar se há um lote selecionado
+                    if not lotes_lista.curselection():
+                        raise ValueError("É necessário selecionar um lote.")
+
+                    lote_selecionado = lotes_lista.get(lotes_lista.curselection())
+                    lote_id = lote_selecionado.split(" - ")[0]  # Pegar o ID do lote
                     quantidade = int(quantidade_entry.get())
+
                     if quantidade <= 0:
-                        raise ValueError("Quantidade deve ser maior que zero.")
+                        raise ValueError("A quantidade deve ser maior que zero.")
+
+                    # Validar quantidade com o lote
+                    lote_quantidade = int(lote_selecionado.split(" - ")[1].split(" ")[0])
+                    if quantidade > lote_quantidade:
+                        raise ValueError("A quantidade excede o disponível no lote selecionado.")
 
                     produto_nome = produto[1]
                     produto_marca = buscar_nome_marca_por_id(produto[2])
@@ -104,20 +186,24 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
                     produto_preco = produto[4]
                     total = quantidade * produto_preco
 
+                    # Adicionar o produto à tabela principal
                     tabela.insert(
                         "",
                         "end",
-                        values=(produto_nome, produto_marca, produto_tipo, quantidade, f"{produto_preco:.2f}", f"{total:.2f}"),
+                        values=(
+                        produto_nome, produto_marca, produto_tipo, quantidade, f"{produto_preco:.2f}", f"{total:.2f}"),
                     )
 
                     atualizar_totais(tabela, total_valor, avista_valor, pagamento_var)
-                    pesquisa_window.destroy()
+                    quantidade_window.destroy()
                 except ValueError as e:
-                    messagebox.showerror("Erro", f"Quantidade inválida: {e}")
+                    messagebox.showerror("Erro", str(e))
+                except IndexError:
+                    messagebox.showerror("Erro", "Erro ao selecionar lote ou quantidade.")
 
             quantidade_window = tk.Toplevel(pesquisa_window)
-            quantidade_window.title("Quantidade")
-            quantidade_window.geometry("300x200")
+            quantidade_window.title("Quantidade e Lote")
+            quantidade_window.geometry("500x550")  # Aumentar a altura da janela
             quantidade_window.configure(bg="white")
 
             tk.Label(
@@ -125,8 +211,29 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
             ).pack(pady=10)
 
             tk.Label(
-                quantidade_window, text="Digite a quantidade:", font=("Arial", 12), bg="white"
+                quantidade_window, text="Digite o ID do lote:", font=("Arial", 12), bg="white"
             ).pack(pady=5)
+
+            lote_entry = tk.Entry(quantidade_window, font=("Arial", 12))
+            lote_entry.pack(pady=5, padx=10, fill="x")
+            lote_entry.bind("<KeyRelease>", buscar_e_exibir_lotes)  # Busca dinâmica ao digitar
+
+            frame_lotes = tk.Frame(quantidade_window, bg="white")
+            frame_lotes.pack(pady=10, fill="both", expand=True)
+
+            lotes_lista = tk.Listbox(frame_lotes, font=("Arial", 10), bg="white")
+            lotes_lista.pack(side="left", fill="both", expand=True, padx=10)
+
+            scrollbar = ttk.Scrollbar(frame_lotes, orient="vertical", command=lotes_lista.yview)
+            lotes_lista.config(yscroll=scrollbar.set)
+            scrollbar.pack(side="right", fill="y")
+
+            # Exibir automaticamente todos os lotes disponíveis ao abrir a janela
+            buscar_e_exibir_lotes()
+
+            tk.Label(
+                quantidade_window, text="Digite a quantidade:", font=("Arial", 12), bg="white"
+            ).pack(pady=10)
 
             quantidade_entry = tk.Entry(quantidade_window, font=("Arial", 12))
             quantidade_entry.pack(pady=10)

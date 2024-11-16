@@ -2,6 +2,8 @@ import mysql.connector
 from mysql.connector import Error
 from tkinter import messagebox
 
+
+
 # Função para conectar ao banco de dados MySQL
 def conectar_banco():
     try:
@@ -73,6 +75,26 @@ def buscar_produtos(nome_produto):
         return cursor.fetchall()
     except Error as e:
         print(f"Erro ao buscar produtos: {e}")
+        return []
+    finally:
+        conexao.close()
+
+def buscar_lotes(lote_id, produto_id):
+    conexao = conectar_banco()
+    if conexao is None:
+        return []
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute('''
+            SELECT id, quantidade, data_de_fabricacao, data_de_vencimento, fornecedor
+            FROM lotes
+            WHERE id LIKE %s AND produto_id = %s
+            ORDER BY data_de_vencimento ASC
+        ''', (f"%{lote_id}%", produto_id))
+        return cursor.fetchall()
+    except Error as e:
+        print(f"Erro ao buscar lotes: {e}")
         return []
     finally:
         conexao.close()
