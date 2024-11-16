@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 from PIL import Image, ImageTk
-from modules.database import buscar_produtos, buscar_lotes, registrar_venda, buscar_nome_marca_por_id, buscar_nome_tipo_por_id, buscar_historico_vendas,obter_id_por_nome
+from .database import buscar_produtos, buscar_lotes, registrar_venda, buscar_nome_marca_por_id, buscar_nome_tipo_por_id, buscar_historico_vendas,obter_id_por_nome
 
 # Caminho base relativo
 base_dir = os.path.dirname(os.path.abspath(__file__))
