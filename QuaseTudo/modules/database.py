@@ -6,9 +6,9 @@ from tkinter import messagebox
 def conectar_banco():
     try:
         conexao = mysql.connector.connect(
-            host="localhost",
+            host="192.168.50.47",
             user="root",
-            password="1234",
+            password="Banana33@5",
             database="quase_tudo"
         )
         return conexao
