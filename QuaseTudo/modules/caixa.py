@@ -48,7 +48,7 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
 
     tabela = ttk.Treeview(
         tabela_frame,
-        columns=("Produto", "Marca", "Tipo", "Quantidade", "Valor Unitário", "Total"),
+        columns=("Produto", "Marca", "Tipo", "Quantidade", "Valor Unitário", "Total", "ID_Lote"),
         show="headings",
         height=5,
     )
@@ -58,6 +58,7 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
     tabela.heading("Quantidade", text="Quantidade")
     tabela.heading("Valor Unitário", text="Valor Unitário")
     tabela.heading("Total", text="Total")
+    tabela.heading("ID_Lote", text="ID_Lote")
     tabela.pack(side="left", fill="x", expand=True)
 
     scrollbar = ttk.Scrollbar(tabela_frame, orient="vertical", command=tabela.yview)
@@ -91,55 +92,6 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
                         lambda e, p=produto: adicionar_produto_selecionado(p),
                     )
 
-        # def adicionar_produto_selecionado(produto):
-        #     def confirmar_quantidade():
-        #         try:
-        #             quantidade = int(quantidade_entry.get())
-        #             if quantidade <= 0:
-        #                 raise ValueError("Quantidade deve ser maior que zero.")
-        #
-        #             produto_nome = produto[1]
-        #             produto_marca = buscar_nome_marca_por_id(produto[2])
-        #             produto_tipo = buscar_nome_tipo_por_id(produto[3])
-        #             produto_preco = produto[4]
-        #             total = quantidade * produto_preco
-        #
-        #             tabela.insert(
-        #                 "",
-        #                 "end",
-        #                 values=(produto_nome, produto_marca, produto_tipo, quantidade, f"{produto_preco:.2f}", f"{total:.2f}"),
-        #             )
-        #
-        #             atualizar_totais(tabela, total_valor, avista_valor, pagamento_var)
-        #             pesquisa_window.destroy()
-        #         except ValueError as e:
-        #             messagebox.showerror("Erro", f"Quantidade inválida: {e}")
-        #
-        #     quantidade_window = tk.Toplevel(pesquisa_window)
-        #     quantidade_window.title("Quantidade")
-        #     quantidade_window.geometry("300x200")
-        #     quantidade_window.configure(bg="white")
-        #
-        #     tk.Label(
-        #         quantidade_window, text=f"Produto: {produto[1]}", font=("Arial", 12), bg="white"
-        #     ).pack(pady=10)
-        #
-        #     tk.Label(
-        #         quantidade_window, text="Digite a quantidade:", font=("Arial", 12), bg="white"
-        #     ).pack(pady=5)
-        #
-        #     quantidade_entry = tk.Entry(quantidade_window, font=("Arial", 12))
-        #     quantidade_entry.pack(pady=10)
-        #     quantidade_entry.insert(0, "1")
-        #
-        #     tk.Button(
-        #         quantidade_window,
-        #         text="Confirmar",
-        #         font=("Arial", 12),
-        #         bg="green",
-        #         fg="white",
-        #         command=confirmar_quantidade,
-        #     ).pack(pady=10)
 
         def adicionar_produto_selecionado(produto):
             def buscar_e_exibir_lotes(event=None):
@@ -191,7 +143,14 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
                         "",
                         "end",
                         values=(
-                        produto_nome, produto_marca, produto_tipo, quantidade, f"{produto_preco:.2f}", f"{total:.2f}"),
+                            produto_nome,
+                            produto_marca,
+                            produto_tipo,
+                            quantidade,
+                            f"{produto_preco:.2f}",
+                            f"{total:.2f}",
+                            lote_id,  # Inclui o ID do lote
+                        ),
                     )
 
                     atualizar_totais(tabela, total_valor, avista_valor, pagamento_var)
@@ -343,12 +302,18 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
 
         itens = []
         for item in tabela.get_children():
-            produto, marca, tipo, quantidade, preco, total = tabela.item(item, "values")
+            produto, marca, tipo, quantidade, preco, total, id_lote = tabela.item(item, "values")
+            produto_id = obter_id_por_nome("produtos", "produto", produto)  # Busca o ID do produto pelo nome
+            if not produto_id:
+                messagebox.showerror("Erro", f"Produto '{produto}' não encontrado no banco de dados!")
+                return
+
             itens.append(
                 {
-                    "produto_id": obter_id_por_nome("produtos","produto",produto),
+                    "produto_id": produto_id,
                     "quantidade": int(quantidade),
                     "preco": float(preco),
+                    "id_lote": int(id_lote),
                 }
             )
 
@@ -359,13 +324,22 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
             "Crediário": 4
         }
 
+        # Valida a redução de estoque para cada lote antes de registrar a venda
+        for item in itens:
+            if not reduzir_quantidade_lote(item["id_lote"], item["quantidade"]):
+                messagebox.showerror(
+                    "Erro",
+                    f"Estoque insuficiente no lote {item['id_lote']} para o produto '{item['produto_id']}'."
+                )
+                return
+
         sucesso = registrar_venda(vendedor_id, cliente_id, itens, forma_pagamento[pagamento_var.get()])
         if sucesso:
             messagebox.showinfo("Sucesso", "Venda registrada com sucesso!")
             exibir_realizar_venda(frame_conteudo, vendedor_id)
         else:
             messagebox.showerror("Erro", "Erro ao registrar a venda.")
-    
+
     def cancelar_venda():
         """Limpa todos os campos e itens da interface de realizar venda."""
         for item in tabela.get_children():

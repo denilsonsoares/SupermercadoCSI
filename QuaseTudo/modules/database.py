@@ -29,6 +29,48 @@ def fechar_conexao_global():
 
 atexit.register(fechar_conexao_global)
 
+
+#Reduzir quantidade de um produto no estoque:
+
+def reduzir_quantidade_lote(lote_id, quantidade_vendida):
+    """
+    Reduz a quantidade de itens de um lote específico no banco de dados.
+    Retorna False se a quantidade desejada não for válida.
+    """
+    conexao = conectar_banco()
+    if conexao is None:
+        return False
+
+    cursor = conexao.cursor()
+    try:
+        # Verifica a quantidade disponível no lote
+        cursor.execute(
+            "SELECT quantidade FROM lotes WHERE id = %s", (lote_id,)
+        )
+        resultado = cursor.fetchone()
+        if not resultado or resultado[0] < quantidade_vendida:
+            print(f"Erro: Estoque insuficiente no lote {lote_id}.")
+            return False
+
+        # Atualiza a quantidade no lote
+        cursor.execute(
+            """
+            UPDATE lotes
+            SET quantidade = quantidade - %s
+            WHERE id = %s
+            """,
+            (quantidade_vendida, lote_id)
+        )
+        conexao.commit()
+        return True
+    except Error as e:
+        print(f"Erro ao reduzir quantidade do lote: {e}")
+        return False
+    finally:
+        cursor.close()
+        conexao.close()
+
+
 # Função para adicionar um produto ao estoque
 def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade):
     conexao = conectar_banco()
@@ -110,7 +152,7 @@ def buscar_lotes(lote_id, produto_id):
         cursor.close()
 
 
-def registrar_venda(vendedor_id, cliente_id, itens):
+def registrar_venda(vendedor_id, cliente_id, itens, modo_pagamento_id):
     """
     Registra uma venda no banco de dados.
     """
@@ -123,17 +165,17 @@ def registrar_venda(vendedor_id, cliente_id, itens):
 
         # Registrar a venda
         cursor.execute('''
-            INSERT INTO vendas (vendedor_id, cliente_id, data_hora)
-            VALUES (%s, %s, NOW())
-        ''', (vendedor_id, cliente_id))
+            INSERT INTO vendas (vendedor_id, cliente_id, data_hora, modo_pagamento)
+            VALUES (%s, %s, NOW(),%s)
+        ''', (vendedor_id, cliente_id,modo_pagamento_id))
         venda_id = cursor.lastrowid
 
         # Registrar os itens vendidos
         for item in itens:
             cursor.execute('''
-                INSERT INTO itens_vendidos (venda_id, produto_id, quantidade, preco)
-                VALUES (%s, %s, %s, %s)
-            ''', (venda_id, item["produto_id"], item["quantidade"], item["preco"]))
+                INSERT INTO itens_vendidos (venda_id, produto_id, quantidade, preco, id_lote)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (venda_id, item["produto_id"], item["quantidade"], item["preco"], item["id_lote"]))
 
         conexao.commit()
         return True
