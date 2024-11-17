@@ -1,7 +1,6 @@
 import os
 import tkinter as tk
 from tkinter import ttk, messagebox
-from datetime import datetime
 from PIL import Image, ImageTk
 from .database import *
 
@@ -10,18 +9,6 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 imagem_usuario_path = os.path.join(base_dir, "../assets/user_icon.png")
 imagem_logout_path = os.path.join(base_dir, "../assets/logout_icon.png")
 
-# Função para atualizar o horário
-def atualizar_hora(label):
-    def atualizar():
-        agora = datetime.now()
-        label.config(text=agora.strftime("%d / %m / %Y  %H:%M"))
-        label.after(1000, atualizar)
-    atualizar()
-
-# Função de logout
-def logout(janela, root, tela_login, abrir_tela_perfil):
-    janela.destroy()
-    tela_login(root, abrir_tela_perfil)
 
 # Função para calcular e atualizar o total e o valor à vista
 def atualizar_totais(tabela, total_label, avista_label, pagamento_var):
@@ -491,6 +478,9 @@ def tela_caixa(nome_caixa, id_caixa, root, tela_login, abrir_tela_perfil):
     tk.Label(frame_conteudo, text="Tela de Caixa", font=("Arial", 20, "bold"), bg="white").pack(
         pady=50
     )
+
+    # Carregar automaticamente a tela de "Realizar Venda"
+    exibir_realizar_venda(frame_conteudo, id_caixa)
 
     janela_caixa.mainloop()
 
