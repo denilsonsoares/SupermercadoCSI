@@ -179,7 +179,7 @@ def tela_estoquista(nome_estoquista, id_estoquista, root, tela_login, abrir_tela
     frame_conteudo = tk.Frame(janela_estoquista, bg="white")
     frame_conteudo.pack(fill="both", expand=True, padx=10, pady=10)
 
-    mostrar_estoque()
+    chamar_mostrar_estoque()
 
     janela_estoquista.mainloop()
 

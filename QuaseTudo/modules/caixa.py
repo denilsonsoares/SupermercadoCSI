@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 from .database import *
+from .utils import *
 
 # Caminho base relativo
 base_dir = os.path.dirname(os.path.abspath(__file__))

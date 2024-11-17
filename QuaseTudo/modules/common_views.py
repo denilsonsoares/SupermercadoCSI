@@ -286,7 +286,6 @@ def mostrar_gestao_produtos(conteudo_atual, frame_conteudo, janela_principal):
         for lote in lotes:
             tree_lotes.insert("", "end", values=lote)
 
-    nonlocal conteudo_atual
     if conteudo_atual:
         conteudo_atual.destroy()
     conteudo_atual = tk.Frame(frame_conteudo, bg="white")
