@@ -2,8 +2,11 @@ import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
+from tkcalendar import DateEntry
+from datetime import datetime
 from .database import *
 from .utils import *
+
 
 # Funções para alternar o conteúdo
 def mostrar_fornecedores(conteudo_atual, frame_conteudo, janela_principal):
@@ -345,3 +348,194 @@ def mostrar_gestao_produtos(conteudo_atual, frame_conteudo, janela_principal):
         tree.insert("", "end", values=produto)
 
     return conteudo_atual
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+from tkcalendar import DateEntry
+from datetime import datetime
+from .database import listar_produtos, listar_fornecedores, cadastrar_fornecedor, registrar_lote
+
+def registrar_lote_interface(janela_principal):
+    # Criar uma nova janela Toplevel
+    janela_registrar_lote = tk.Toplevel(janela_principal)
+    janela_registrar_lote.title("Registrar Lote")
+    janela_registrar_lote.geometry("500x700")
+
+    # Selecionar o produto
+    tk.Label(janela_registrar_lote, text="Produto:").pack()
+    produtos = listar_produtos()
+    if not produtos:
+        messagebox.showerror("Erro", "Nenhum produto encontrado. Cadastre um produto antes de registrar um lote.")
+        janela_registrar_lote.destroy()
+        return
+    produto_nomes = [f"{p[0]} - {p[1]}" for p in produtos]
+    combo_produto = ttk.Combobox(janela_registrar_lote, values=produto_nomes)
+    combo_produto.pack()
+
+    # Preencher os campos do lote
+    tk.Label(janela_registrar_lote, text="Quantidade:").pack()
+    entry_quantidade = tk.Entry(janela_registrar_lote)
+    entry_quantidade.pack()
+
+    tk.Label(janela_registrar_lote, text="Preço de Compra:").pack()
+    entry_preco_compra = tk.Entry(janela_registrar_lote)
+    entry_preco_compra.pack()
+
+    # Data e Hora de Fabricação
+    tk.Label(janela_registrar_lote, text="Data e Hora de Fabricação:").pack()
+    frame_data_fabricacao = tk.Frame(janela_registrar_lote)
+    frame_data_fabricacao.pack()
+
+    entry_data_fabricacao = DateEntry(frame_data_fabricacao, date_pattern='yyyy-mm-dd')
+    entry_data_fabricacao.pack(side='left')
+
+    tk.Label(frame_data_fabricacao, text="Hora (HH:MM:SS):").pack(side='left')
+    entry_hora_fabricacao = tk.Entry(frame_data_fabricacao, width=8)
+    entry_hora_fabricacao.pack(side='left')
+
+    # Data e Hora de Vencimento
+    tk.Label(janela_registrar_lote, text="Data e Hora de Vencimento:").pack()
+    frame_data_vencimento = tk.Frame(janela_registrar_lote)
+    frame_data_vencimento.pack()
+
+    entry_data_vencimento = DateEntry(frame_data_vencimento, date_pattern='yyyy-mm-dd')
+    entry_data_vencimento.pack(side='left')
+
+    tk.Label(frame_data_vencimento, text="Hora (HH:MM:SS):").pack(side='left')
+    entry_hora_vencimento = tk.Entry(frame_data_vencimento, width=8)
+    entry_hora_vencimento.pack(side='left')
+
+    # Opções para o fornecedor
+    tk.Label(janela_registrar_lote, text="Fornecedor:").pack()
+
+    var_fornecedor_option = tk.StringVar(value="existente")
+    frame_fornecedor = tk.Frame(janela_registrar_lote)
+    frame_fornecedor.pack()
+
+    tk.Radiobutton(frame_fornecedor, text="Existente", variable=var_fornecedor_option, value="existente").pack(side="left")
+    tk.Radiobutton(frame_fornecedor, text="Novo", variable=var_fornecedor_option, value="novo").pack(side="left")
+
+    # Fornecedor existente
+    frame_fornecedor_existente = tk.Frame(janela_registrar_lote)
+    frame_fornecedor_existente.pack()
+
+    tk.Label(frame_fornecedor_existente, text="Selecionar Fornecedor:").pack()
+    fornecedores = listar_fornecedores()
+    fornecedor_nomes = [f"{f[0]} - {f[1]}" for f in fornecedores]
+    combo_fornecedor_existente = ttk.Combobox(frame_fornecedor_existente, values=fornecedor_nomes)
+    combo_fornecedor_existente.pack()
+
+    # Novo fornecedor
+    frame_fornecedor_novo = tk.Frame(janela_registrar_lote)
+
+    tk.Label(frame_fornecedor_novo, text="Nome do Novo Fornecedor:").pack()
+    entry_nome_fornecedor_novo = tk.Entry(frame_fornecedor_novo)
+    entry_nome_fornecedor_novo.pack()
+
+    # Atualizar visibilidade dos frames de fornecedor
+    def atualizar_opcao_fornecedor(*args):
+        if var_fornecedor_option.get() == "existente":
+            frame_fornecedor_existente.pack()
+            frame_fornecedor_novo.pack_forget()
+        else:
+            frame_fornecedor_existente.pack_forget()
+            frame_fornecedor_novo.pack()
+
+    var_fornecedor_option.trace("w", atualizar_opcao_fornecedor)
+    atualizar_opcao_fornecedor()
+
+    # Função para salvar o lote
+    def salvar_lote():
+        produto_selecionado = combo_produto.get()
+        if not produto_selecionado:
+            messagebox.showerror("Erro", "Selecione um produto.")
+            return
+        try:
+            produto_id = int(produto_selecionado.split(" - ")[0])
+        except ValueError:
+            messagebox.showerror("Erro", "Produto inválido.")
+            return
+
+        quantidade = entry_quantidade.get()
+        preco_compra = entry_preco_compra.get()
+        data_fabricacao = entry_data_fabricacao.get()
+        hora_fabricacao = entry_hora_fabricacao.get()
+        data_vencimento = entry_data_vencimento.get()
+        hora_vencimento = entry_hora_vencimento.get()
+
+        if not (quantidade and preco_compra and data_fabricacao and hora_fabricacao and data_vencimento and hora_vencimento):
+            messagebox.showerror("Erro", "Todos os campos devem ser preenchidos.")
+            return
+
+        try:
+            quantidade = int(quantidade)
+            if quantidade <= 0:
+                messagebox.showerror("Erro", "A quantidade deve ser um número inteiro positivo.")
+                return
+        except ValueError:
+            messagebox.showerror("Erro", "Quantidade deve ser um número inteiro.")
+            return
+
+        try:
+            preco_compra = float(preco_compra)
+            if preco_compra <= 0:
+                messagebox.showerror("Erro", "O preço de compra deve ser um número positivo.")
+                return
+        except ValueError:
+            messagebox.showerror("Erro", "Preço de compra deve ser um número válido.")
+            return
+
+        # Validar as datas e horas
+        try:
+            data_hora_fabricacao_str = f"{data_fabricacao} {hora_fabricacao}"
+            data_hora_fabricacao = datetime.strptime(data_hora_fabricacao_str, '%Y-%m-%d %H:%M:%S')
+
+            data_hora_vencimento_str = f"{data_vencimento} {hora_vencimento}"
+            data_hora_vencimento = datetime.strptime(data_hora_vencimento_str, '%Y-%m-%d %H:%M:%S')
+
+            if data_hora_fabricacao >= data_hora_vencimento:
+                messagebox.showerror("Erro", "A data e hora de fabricação devem ser anteriores à data e hora de vencimento.")
+                return
+        except ValueError:
+            messagebox.showerror("Erro", "Formato de data ou hora inválido. Use o formato HH:MM:SS para as horas.")
+            return
+
+        # Tratamento do fornecedor
+        if var_fornecedor_option.get() == "existente":
+            fornecedor_selecionado = combo_fornecedor_existente.get()
+            if not fornecedor_selecionado:
+                messagebox.showerror("Erro", "Selecione um fornecedor existente.")
+                return
+            try:
+                fornecedor_id = int(fornecedor_selecionado.split(" - ")[0])
+            except ValueError:
+                messagebox.showerror("Erro", "Fornecedor inválido.")
+                return
+        else:
+            nome_fornecedor_novo = entry_nome_fornecedor_novo.get()
+            if not nome_fornecedor_novo:
+                messagebox.showerror("Erro", "Digite o nome do novo fornecedor.")
+                return
+            fornecedor_id = cadastrar_fornecedor(nome_fornecedor_novo)
+            if not fornecedor_id:
+                # A função cadastrar_fornecedor já exibe a mensagem de erro
+                return
+
+        # Chamar a função registrar_lote com quantidade como inicial e atual
+        sucesso = registrar_lote(
+            produto_id,
+            preco_compra,
+            quantidade,
+            quantidade,
+            data_hora_fabricacao,
+            data_hora_vencimento,
+            fornecedor_id
+        )
+        if sucesso:
+            messagebox.showinfo("Sucesso", "Lote registrado com sucesso.")
+            janela_registrar_lote.destroy()
+        else:
+            # A função registrar_lote já exibe a mensagem de erro
+            pass
+
+    tk.Button(janela_registrar_lote, text="Salvar", command=salvar_lote).pack(pady=10)

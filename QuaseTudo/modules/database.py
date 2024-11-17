@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 from .db_connection import ConexaoSingleton
+from tkinter import messagebox
 import atexit
 
 # Variável global para a conexão com o banco de dados
@@ -734,6 +735,23 @@ def consultar_produtos(filtro_marca=None, filtro_tipo=None, filtro_estoque=False
     finally:
         cursor.close()
 
+def listar_produtos():
+    conexao = ConexaoSingleton().conectar_banco()
+    if not conexao:
+        messagebox.showerror("Erro", "Não foi possível conectar ao banco de dados.")
+        return []
+    cursor = conexao.cursor()
+    try:
+        cursor.execute("SELECT id, Produto FROM produtos")
+        produtos = cursor.fetchall()
+        return produtos
+    except Error as e:
+        messagebox.showerror("Erro", f"Erro ao listar produtos: {e}")
+        return []
+    finally:
+        cursor.close()
+
+# Funções de Lotes:
 
 def visualizar_lotes_produto(produto_id):
     conexao = ConexaoSingleton().conectar_banco()
@@ -825,7 +843,76 @@ def quantidade_inicial_e_restante_lotes(filtro_marca=None, filtro_produto=None, 
         cursor.close()
 
 
+def registrar_lote(produto_id, preco_de_compra, quantidade_inicial, quantidade, data_fabricacao, data_vencimento, fornecedor_id):
+    conexao = ConexaoSingleton().conectar_banco()
+    if not conexao:
+        messagebox.showerror("Erro", "Não foi possível conectar ao banco de dados.")
+        return False
+    cursor = conexao.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO lotes (
+                produto_id,
+                preco_de_compra,
+                data_de_fabricacao,
+                data_de_vencimento,
+                quantidade,
+                fornecedor,
+                quantidade_incial
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            produto_id,
+            preco_de_compra,
+            data_fabricacao,
+            data_vencimento,
+            quantidade,
+            fornecedor_id,
+            quantidade_inicial
+        ))
+        conexao.commit()
+        return True
+    except Error as e:
+        messagebox.showerror("Erro", f"Erro ao registrar lote: {e}")
+        return False
+    finally:
+        cursor.close()
 
 
+#Funções de Fornecedores:
+def listar_fornecedores():
+    conexao = ConexaoSingleton().conectar_banco()
+    if not conexao:
+        messagebox.showerror("Erro", "Não foi possível conectar ao banco de dados.")
+        return []
+    cursor = conexao.cursor()
+    try:
+        cursor.execute("SELECT id, nome FROM fornecedores")
+        fornecedores = cursor.fetchall()
+        return fornecedores
+    except Error as e:
+        messagebox.showerror("Erro", f"Erro ao listar fornecedores: {e}")
+        return []
+    finally:
+        cursor.close()
+
+def cadastrar_fornecedor(nome):
+    conexao = ConexaoSingleton().conectar_banco()
+    if not conexao:
+        messagebox.showerror("Erro", "Não foi possível conectar ao banco de dados.")
+        return None
+    cursor = conexao.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO fornecedores (nome)
+            VALUES (%s)
+        """, (nome,))
+        conexao.commit()
+        return cursor.lastrowid  # Retorna o ID do novo fornecedor
+    except Error as e:
+        messagebox.showerror("Erro", f"Erro ao cadastrar fornecedor: {e}")
+        return None
+    finally:
+        cursor.close()
 
 

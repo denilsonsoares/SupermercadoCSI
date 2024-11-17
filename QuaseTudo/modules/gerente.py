@@ -307,6 +307,9 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
         nonlocal conteudo_atual
         conteudo_atual = mostrar_gestao_produtos(conteudo_atual, frame_conteudo, janela_gerente)
 
+    def chamar_registrar_lote():
+        registrar_lote_interface(janela_gerente)
+
     # Menu Lateral - fixo à esquerda
     frame_menu = tk.Frame(janela_gerente, bg="#d3d3d3", width=200)
     frame_menu.pack(side="left", fill="y")
@@ -320,6 +323,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
         ("Estoque", chamar_mostrar_estoque),
         ("Gestão de Usuários", mostrar_gestao_usuarios),
         ("Gestão de Produtos", chamar_mostrar_gestao_produtos),
+        ("Registrar Lote", chamar_registrar_lote),
     ]
     for texto, comando in botoes_menu:
         tk.Button(frame_menu, text=texto, font=("Arial", 12), bg="#d3d3d3", fg="black", bd=0, relief="flat",
