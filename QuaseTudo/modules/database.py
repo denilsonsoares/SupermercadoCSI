@@ -586,9 +586,11 @@ def produtos_proximos_vencimento(dias=30):
         cursor.close()
 
 
+# database.py
+
 def quantidade_inicial_e_restante_lotes():
     """
-    Retorna a quantidade inicial e restante de cada lote.
+    Retorna a quantidade inicial e restante de cada lote, incluindo a Marca.
     """
     conexao = conectar_banco()
     if not conexao:
@@ -597,9 +599,10 @@ def quantidade_inicial_e_restante_lotes():
     cursor = conexao.cursor()
     try:
         cursor.execute("""
-            SELECT l.id, p.Produto, l.quantidade_incial, l.quantidade
+            SELECT l.id, p.Produto, m.nome_da_marca, l.quantidade_incial, l.quantidade
             FROM lotes l
             JOIN produtos p ON l.produto_id = p.id
+            JOIN marcas m ON p.Marca_id = m.id
         """)
         lotes = cursor.fetchall()
         return lotes
@@ -608,6 +611,8 @@ def quantidade_inicial_e_restante_lotes():
         return []
     finally:
         cursor.close()
+        # Se estiver usando conexão global, não feche aqui
+        # conexao.close()
 
 
 # Funções para Gestão de Usuários

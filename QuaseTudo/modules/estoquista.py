@@ -197,13 +197,32 @@ def tela_estoquista(nome_estoquista, id_estoquista, root, tela_login, abrir_tela
         conteudo_atual = tk.Frame(frame_conteudo, bg="white")
         conteudo_atual.pack(fill="both", expand=True)
 
-        tk.Label(conteudo_atual, text="Gestão de Estoque", font=("Arial", 16, "bold"), bg="white").pack(pady=10)
+        # Configurar a grade de layout
+        conteudo_atual.rowconfigure(0, weight=2)  # Parte superior (40%)
+        conteudo_atual.rowconfigure(1, weight=3)  # Parte inferior (60%)
+        conteudo_atual.columnconfigure(0, weight=1)
 
-        # Produtos com menor quantidade em estoque
-        tk.Label(conteudo_atual, text="Produtos com Menor Quantidade em Estoque:", bg="white",
+        # Frame superior para as duas tabelas lado a lado
+        frame_superior = tk.Frame(conteudo_atual, bg="white")
+        frame_superior.grid(row=0, column=0, sticky="nsew")
+
+        # Configurar colunas no frame superior
+        frame_superior.columnconfigure(0, weight=1)
+        frame_superior.columnconfigure(1, weight=1)
+
+        # Frame esquerdo (Produtos com Menor Quantidade em Estoque)
+        frame_esquerdo = tk.Frame(frame_superior, bg="white")
+        frame_esquerdo.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Frame direito (Produtos Próximos do Vencimento)
+        frame_direito = tk.Frame(frame_superior, bg="white")
+        frame_direito.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        # Tabela: Produtos com Menor Quantidade em Estoque
+        tk.Label(frame_esquerdo, text="Produtos com Menor Quantidade em Estoque:", bg="white",
                  font=("Arial", 14, "bold")).pack(pady=10)
         produtos_menor_estoque = produtos_com_menor_estoque()
-        tree_menor_estoque = ttk.Treeview(conteudo_atual, columns=("ID", "Produto", "Quantidade"), show="headings")
+        tree_menor_estoque = ttk.Treeview(frame_esquerdo, columns=("ID", "Produto", "Quantidade"), show="headings")
         tree_menor_estoque.heading("ID", text="ID")
         tree_menor_estoque.heading("Produto", text="Produto")
         tree_menor_estoque.heading("Quantidade", text="Quantidade")
@@ -211,11 +230,11 @@ def tela_estoquista(nome_estoquista, id_estoquista, root, tela_login, abrir_tela
         for produto in produtos_menor_estoque:
             tree_menor_estoque.insert("", "end", values=produto)
 
-        # Produtos vencidos ou próximos do vencimento
-        tk.Label(conteudo_atual, text="Produtos Próximos do Vencimento:", bg="white", font=("Arial", 14, "bold")).pack(
+        # Tabela: Produtos Próximos do Vencimento
+        tk.Label(frame_direito, text="Produtos Próximos do Vencimento:", bg="white", font=("Arial", 14, "bold")).pack(
             pady=10)
         produtos_vencimento = produtos_proximos_vencimento()
-        tree_vencimento = ttk.Treeview(conteudo_atual, columns=("ID", "Produto", "Data de Vencimento", "Quantidade"),
+        tree_vencimento = ttk.Treeview(frame_direito, columns=("ID", "Produto", "Data de Vencimento", "Quantidade"),
                                        show="headings")
         tree_vencimento.heading("ID", text="ID")
         tree_vencimento.heading("Produto", text="Produto")
@@ -225,15 +244,21 @@ def tela_estoquista(nome_estoquista, id_estoquista, root, tela_login, abrir_tela
         for produto in produtos_vencimento:
             tree_vencimento.insert("", "end", values=produto)
 
-        # Quantidade inicial e restante dos lotes
-        tk.Label(conteudo_atual, text="Quantidade Inicial e Restante dos Lotes:", bg="white",
+        # Frame inferior para a tabela de Quantidade Inicial e Restante dos Lotes
+        frame_inferior = tk.Frame(conteudo_atual, bg="white")
+        frame_inferior.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Tabela: Quantidade Inicial e Restante dos Lotes
+        tk.Label(frame_inferior, text="Quantidade Inicial e Restante dos Lotes:", bg="white",
                  font=("Arial", 14, "bold")).pack(pady=10)
         lotes_quantidades = quantidade_inicial_e_restante_lotes()
-        tree_lotes = ttk.Treeview(conteudo_atual,
-                                  columns=("Lote ID", "Produto", "Quantidade Inicial", "Quantidade Restante"),
+        tree_lotes = ttk.Treeview(frame_inferior,
+                                  columns=(
+                                  "Lote ID", "Produto", "Marca", "Quantidade Inicial", "Quantidade Restante"),
                                   show="headings")
         tree_lotes.heading("Lote ID", text="Lote ID")
         tree_lotes.heading("Produto", text="Produto")
+        tree_lotes.heading("Marca", text="Marca")
         tree_lotes.heading("Quantidade Inicial", text="Quantidade Inicial")
         tree_lotes.heading("Quantidade Restante", text="Quantidade Restante")
         tree_lotes.pack(fill="both", expand=True)
