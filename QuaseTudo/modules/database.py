@@ -776,6 +776,75 @@ def visualizar_lotes_produto(produto_id):
     finally:
         cursor.close()
 
+def lotes_proximos_vencimento(dias=365):
+    """
+    Retorna os lotes com data de vencimento nos próximos 'dias' dias.
+    """
+    conexao = conectar_banco()
+    if not conexao:
+        return []
+
+    cursor = conexao.cursor()
+    try:
+        cursor.execute("""
+            SELECT l.id AS LoteID, p.Produto, m.nome_da_marca AS Marca, l.data_de_vencimento, l.quantidade
+            FROM lotes l
+            JOIN produtos p ON l.produto_id = p.id
+            JOIN marcas m ON p.Marca_id = m.id
+            WHERE l.data_de_vencimento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL %s DAY)
+            ORDER BY l.data_de_vencimento ASC
+        """, (dias,))
+        lotes = cursor.fetchall()
+        return lotes
+    except Error as e:
+        print(f"Erro ao obter lotes próximos do vencimento: {e}")
+        return []
+    finally:
+        cursor.close()
+
+def quantidade_inicial_e_restante_lotes(filtro_marca=None, filtro_produto=None, filtro_lote_id=None):
+    """
+    Retorna a quantidade inicial e restante de cada lote, com possibilidade de filtrar por marca, produto e lote_id.
+    """
+    conexao = conectar_banco()
+    if not conexao:
+        return []
+
+    cursor = conexao.cursor()
+    try:
+        query = """
+            SELECT l.id AS LoteID, m.nome_da_marca AS Marca, p.Produto, l.quantidade_incial,
+                   l.quantidade, l.data_de_vencimento, f.nome AS Fornecedor
+            FROM lotes l
+            JOIN produtos p ON l.produto_id = p.id
+            JOIN marcas m ON p.Marca_id = m.id
+            JOIN fornecedores f ON l.fornecedor = f.id
+        """
+        conditions = []
+        params = []
+
+        if filtro_marca:
+            conditions.append("m.nome_da_marca LIKE %s")
+            params.append(f"%{filtro_marca}%")
+        if filtro_produto:
+            conditions.append("p.Produto LIKE %s")
+            params.append(f"%{filtro_produto}%")
+        if filtro_lote_id:
+            conditions.append("l.id = %s")
+            params.append(filtro_lote_id)
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        cursor.execute(query, params)
+        lotes = cursor.fetchall()
+        return lotes
+    except Error as e:
+        print(f"Erro ao obter quantidades dos lotes: {e}")
+        return []
+    finally:
+        cursor.close()
+
 
 
 

@@ -258,7 +258,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
         frame_esquerdo = tk.Frame(frame_superior, bg="white")
         frame_esquerdo.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        # Frame direito (Produtos Próximos do Vencimento)
+        # Frame direito (Lotes Próximos do Vencimento)
         frame_direito = tk.Frame(frame_superior, bg="white")
         frame_direito.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
@@ -274,38 +274,73 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
         for produto in produtos_menor_estoque:
             tree_menor_estoque.insert("", "end", values=produto)
 
-        # Tabela: Produtos Próximos do Vencimento
-        tk.Label(frame_direito, text="Produtos Próximos do Vencimento:", bg="white", font=("Arial", 14, "bold")).pack(
+        # Tabela: Lotes Próximos do Vencimento
+        tk.Label(frame_direito, text="Lotes Próximos do Vencimento:", bg="white", font=("Arial", 14, "bold")).pack(
             pady=10)
-        produtos_vencimento = produtos_proximos_vencimento()
-        tree_vencimento = ttk.Treeview(frame_direito, columns=("ID", "Produto", "Data de Vencimento", "Quantidade"),
+        lotes_vencimento = lotes_proximos_vencimento()
+        tree_vencimento = ttk.Treeview(frame_direito,
+                                       columns=("Lote ID", "Produto", "Marca", "Data de Vencimento", "Quantidade"),
                                        show="headings")
-        tree_vencimento.heading("ID", text="ID")
+        tree_vencimento.heading("Lote ID", text="Lote ID")
+        tree_vencimento.column("Lote ID", width=50)
         tree_vencimento.heading("Produto", text="Produto")
+        tree_vencimento.column("Produto", width=120)
+        tree_vencimento.heading("Marca", text="Marca")
+        tree_vencimento.column("Marca", width=120)
         tree_vencimento.heading("Data de Vencimento", text="Data de Vencimento")
         tree_vencimento.heading("Quantidade", text="Quantidade")
         tree_vencimento.pack(fill="both", expand=True)
-        for produto in produtos_vencimento:
-            tree_vencimento.insert("", "end", values=produto)
+        for lote in lotes_vencimento:
+            tree_vencimento.insert("", "end", values=lote)
 
         # Frame inferior para a tabela de Quantidade Inicial e Restante dos Lotes
         frame_inferior = tk.Frame(conteudo_atual, bg="white")
         frame_inferior.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 
+        # Filtros
+        frame_filtros = tk.Frame(frame_inferior, bg="white")
+        frame_filtros.pack(pady=5)
+
+        tk.Label(frame_filtros, text="Filtrar por:", bg="white", font=("Arial", 12, "bold")).pack(side="left", padx=5)
+
+        tk.Label(frame_filtros, text="Marca:", bg="white").pack(side="left")
+        entry_filtro_marca = tk.Entry(frame_filtros)
+        entry_filtro_marca.pack(side="left", padx=5)
+
+        tk.Label(frame_filtros, text="Produto:", bg="white").pack(side="left")
+        entry_filtro_produto = tk.Entry(frame_filtros)
+        entry_filtro_produto.pack(side="left", padx=5)
+
+        tk.Label(frame_filtros, text="Lote ID:", bg="white").pack(side="left")
+        entry_filtro_lote_id = tk.Entry(frame_filtros)
+        entry_filtro_lote_id.pack(side="left", padx=5)
+
+        def aplicar_filtros_lotes():
+            filtro_marca = entry_filtro_marca.get()
+            filtro_produto = entry_filtro_produto.get()
+            filtro_lote_id = entry_filtro_lote_id.get()
+            lotes_quantidades = quantidade_inicial_e_restante_lotes(filtro_marca, filtro_produto, filtro_lote_id)
+            # Limpar a treeview
+            for item in tree_lotes.get_children():
+                tree_lotes.delete(item)
+            for lote in lotes_quantidades:
+                tree_lotes.insert("", "end", values=lote)
+
+        tk.Button(frame_filtros, text="Aplicar Filtros", command=aplicar_filtros_lotes).pack(side="left", padx=5)
+
         # Tabela: Quantidade Inicial e Restante dos Lotes
         tk.Label(frame_inferior, text="Quantidade Inicial e Restante dos Lotes:", bg="white",
                  font=("Arial", 14, "bold")).pack(pady=10)
-        lotes_quantidades = quantidade_inicial_e_restante_lotes()
-        tree_lotes = ttk.Treeview(frame_inferior,
-                                  columns=(
-                                  "Lote ID", "Produto", "Marca", "Quantidade Inicial", "Quantidade Restante"),
-                                  show="headings")
-        tree_lotes.heading("Lote ID", text="Lote ID")
-        tree_lotes.heading("Produto", text="Produto")
-        tree_lotes.heading("Marca", text="Marca")
-        tree_lotes.heading("Quantidade Inicial", text="Quantidade Inicial")
-        tree_lotes.heading("Quantidade Restante", text="Quantidade Restante")
+
+        columns = ("Lote ID", "Marca", "Produto", "Quantidade Inicial", "Quantidade Restante",
+                   "Data de Vencimento", "Fornecedor")
+        tree_lotes = ttk.Treeview(frame_inferior, columns=columns, show="headings")
+        for col in columns:
+            tree_lotes.heading(col, text=col)
         tree_lotes.pack(fill="both", expand=True)
+
+        # Carregar dados iniciais
+        lotes_quantidades = quantidade_inicial_e_restante_lotes()
         for lote in lotes_quantidades:
             tree_lotes.insert("", "end", values=lote)
 
