@@ -1,14 +1,14 @@
 import tkinter as tk
 from tkinter import messagebox
 import mysql.connector
-from .database import conectar_banco
+from .db_connection import ConexaoSingleton
 
 # Função para verificar login
 def verificar_login(callback_login, login_window, event=None):
     username = entry_user.get()
     senha = entry_pass.get()
 
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     cursor = conexao.cursor()
     try:
         # Consulta para verificar o login

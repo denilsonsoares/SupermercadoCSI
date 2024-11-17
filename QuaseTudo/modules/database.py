@@ -1,33 +1,12 @@
 import mysql.connector
 from mysql.connector import Error
-from tkinter import messagebox
+from .db_connection import ConexaoSingleton
 import atexit
 
 # Variável global para a conexão com o banco de dados
 conexao_global = None
 
-def conectar_banco():
-    global conexao_global
-    try:
-        if conexao_global is None or not conexao_global.is_connected():
-            conexao_global = mysql.connector.connect(
-                host="192.168.50.47",
-                user="root",
-                password="Banana33@5",
-                database="quase_tudo"
-            )
-        return conexao_global
-    except Error as err:
-        messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {err}")
-        return None
-
-# Função para fechar a conexão global ao sair
-def fechar_conexao_global():
-    global conexao_global
-    if conexao_global is not None and conexao_global.is_connected():
-        conexao_global.close()
-
-atexit.register(fechar_conexao_global)
+atexit.register(ConexaoSingleton().fechar_conexao)
 
 
 #Reduzir quantidade de um produto no estoque:
@@ -37,7 +16,7 @@ def reduzir_quantidade_lote(lote_id, quantidade_vendida):
     Reduz a quantidade de itens de um lote específico no banco de dados.
     Retorna False se a quantidade desejada não for válida.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return False
 
@@ -73,7 +52,7 @@ def reduzir_quantidade_lote(lote_id, quantidade_vendida):
 
 # Função para adicionar um produto ao estoque
 def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return False
     cursor = conexao.cursor()
@@ -94,7 +73,7 @@ def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_
 
 # Função para remover um produto pelo nome
 def remover_produto(nome_produto):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return False
     cursor = conexao.cursor()
@@ -112,7 +91,7 @@ def remover_produto(nome_produto):
 
 # Função para buscar produtos pelo nome
 def buscar_produtos(nome_produto):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return []
     cursor = conexao.cursor()
@@ -132,7 +111,7 @@ def buscar_produtos(nome_produto):
         cursor.close()
 
 def buscar_lotes(lote_id, produto_id):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return []
     cursor = conexao.cursor()
@@ -156,7 +135,7 @@ def registrar_venda(vendedor_id, cliente_id, itens, modo_pagamento_id):
     """
     Registra uma venda no banco de dados.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     cursor = conexao.cursor()
 
     try:
@@ -189,7 +168,7 @@ def registrar_venda(vendedor_id, cliente_id, itens, modo_pagamento_id):
 
 # Funções de busca dinâmica
 def buscar_marcas(nome_marca):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return []
     cursor = conexao.cursor()
@@ -205,7 +184,7 @@ def buscar_marcas(nome_marca):
 
 
 def buscar_tipos(nome_tipo):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return []
     cursor = conexao.cursor()
@@ -221,7 +200,7 @@ def buscar_tipos(nome_tipo):
 
 
 def buscar_nome_marca_por_id(marca_id):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return None
     cursor = conexao.cursor()
@@ -238,7 +217,7 @@ def buscar_nome_marca_por_id(marca_id):
 
 
 def buscar_nome_tipo_por_id(tipo_id):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return None
     cursor = conexao.cursor()
@@ -255,7 +234,7 @@ def buscar_nome_tipo_por_id(tipo_id):
 
 
 def buscar_unidades(nome_unidade):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return []
     cursor = conexao.cursor()
@@ -272,7 +251,7 @@ def buscar_unidades(nome_unidade):
 
 # Função para obter o ID correspondente ao nome
 def obter_id_por_nome(tabela, coluna_nome, nome):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return None
     cursor = conexao.cursor()
@@ -288,7 +267,7 @@ def obter_id_por_nome(tabela, coluna_nome, nome):
         cursor.close()
 
 def buscar_historico_vendas(vendedor_id):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -316,7 +295,7 @@ def resumo_vendas(periodo='dia'):
     """
     Retorna o total faturado, número de vendas e itens vendidos no período especificado.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return None
 
@@ -355,7 +334,7 @@ def top_produtos_vendidos(periodo='dia', limite=5):
     """
     Retorna os top produtos mais vendidos no período especificado.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -395,7 +374,7 @@ def top_produtos_vendidos(periodo='dia', limite=5):
 # Funções para Gestão de Clientes
 
 def cadastrar_cliente(nome, cpf, telefone):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return False
 
@@ -415,7 +394,7 @@ def cadastrar_cliente(nome, cpf, telefone):
 
 
 def atualizar_cliente(cliente_id, nome, cpf, telefone):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return False
 
@@ -436,7 +415,7 @@ def atualizar_cliente(cliente_id, nome, cpf, telefone):
 
 
 def excluir_cliente(cliente_id):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return False
 
@@ -456,7 +435,7 @@ def clientes_compras_recentes(dias=30):
     """
     Retorna os clientes que realizaram compras nos últimos 'dias' dias.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -483,7 +462,7 @@ def historico_entregas_fornecedor(fornecedor_id):
     """
     Retorna o histórico de entregas de um fornecedor específico.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -509,7 +488,7 @@ def total_lotes_por_fornecedor():
     """
     Retorna o total de lotes entregues por cada fornecedor.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -537,7 +516,7 @@ def produtos_com_menor_estoque(limite=10):
     """
     Retorna os produtos com menor quantidade em estoque.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -564,7 +543,7 @@ def produtos_proximos_vencimento(dias=30):
     """
     Retorna os produtos com data de vencimento nos próximos 'dias' dias.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -592,7 +571,7 @@ def quantidade_inicial_e_restante_lotes():
     """
     Retorna a quantidade inicial e restante de cada lote, incluindo a Marca.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -618,7 +597,7 @@ def quantidade_inicial_e_restante_lotes():
 # Funções para Gestão de Usuários
 
 def adicionar_usuario(username, senha, perfil):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return False
 
@@ -638,7 +617,7 @@ def adicionar_usuario(username, senha, perfil):
 
 
 def editar_usuario(usuario_id, username, senha, perfil):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return False
 
@@ -659,7 +638,7 @@ def editar_usuario(usuario_id, username, senha, perfil):
 
 
 def excluir_usuario(usuario_id):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return False
 
@@ -676,7 +655,7 @@ def excluir_usuario(usuario_id):
         conexao.close()
 
 def listar_usuarios():
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -698,7 +677,7 @@ def cadastrar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_
     return adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade)
 
 def atualizar_preco_produto(produto_id, novo_preco):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return False
 
@@ -719,7 +698,7 @@ def atualizar_preco_produto(produto_id, novo_preco):
 
 
 def consultar_produtos(filtro_marca=None, filtro_tipo=None, filtro_estoque=False):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -757,7 +736,7 @@ def consultar_produtos(filtro_marca=None, filtro_tipo=None, filtro_estoque=False
 
 
 def visualizar_lotes_produto(produto_id):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -780,7 +759,7 @@ def lotes_proximos_vencimento(dias=365):
     """
     Retorna os lotes com data de vencimento nos próximos 'dias' dias.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 
@@ -806,7 +785,7 @@ def quantidade_inicial_e_restante_lotes(filtro_marca=None, filtro_produto=None, 
     """
     Retorna a quantidade inicial e restante de cada lote, com possibilidade de filtrar por marca, produto e lote_id.
     """
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if not conexao:
         return []
 

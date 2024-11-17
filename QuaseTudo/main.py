@@ -3,11 +3,11 @@ from modules.login import tela_login
 from modules.caixa import tela_caixa
 from modules.gerente import tela_gerente
 from modules.estoquista import tela_estoquista
-from modules.database import conectar_banco
+from modules.db_connection import ConexaoSingleton
 
 # Função para obter dados do usuário no banco de dados MySQL
 def obter_dados_usuario(username, perfil):
-    conexao = conectar_banco()
+    conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return ("", "")
     cursor = conexao.cursor()
