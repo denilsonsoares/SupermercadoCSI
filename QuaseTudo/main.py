@@ -3,34 +3,59 @@ from modules.login import tela_login
 from modules.caixa import tela_caixa
 from modules.gerente import tela_gerente
 from modules.estoquista import tela_estoquista
+from modules.usuario import Gerente, Caixa, Estoquista  # Importar as classes
 from modules.db_connection import ConexaoSingleton
+from tkinter import messagebox
 
-# Função para obter dados do usuário no banco de dados MySQL
-def obter_dados_usuario(username, perfil):
+# Função para autenticar e obter o perfil do usuário
+def autenticar_usuario(username, senha):
+    """
+    Autentica o usuário e retorna uma instância de Gerente, Caixa ou Estoquista, dependendo do perfil.
+    """
     conexao = ConexaoSingleton().conectar_banco()
-    if conexao is None:
-        return ("", "")
+    if not conexao:
+        messagebox.showerror("Erro", "Erro ao conectar ao banco de dados.")
+        return None
+
     cursor = conexao.cursor()
     try:
-        cursor.execute("SELECT username, id FROM usuarios WHERE username=%s AND perfil=%s", (username, perfil))
-        result = cursor.fetchone()
-        return result if result else ("", "")
+        # Busca o usuário pelo nome e senha
+        cursor.execute("""
+            SELECT id, username, perfil
+            FROM usuarios
+            WHERE username = %s AND senha = %s
+        """, (username, senha))
+        usuario = cursor.fetchone()
+
+        if usuario:
+            id_usuario, username, perfil = usuario
+            if perfil == "Gerente":
+                return Gerente(id_usuario, username, None)  # Não armazene a senha para segurança
+            elif perfil == "Caixa":
+                return Caixa(id_usuario, username, None)
+            elif perfil == "Estoquista":
+                return Estoquista(id_usuario, username, None)
+        return None
     finally:
         cursor.close()
 
 
 # Função para abrir a tela de perfil com base no perfil do usuário
-def abrir_tela_perfil(perfil, username):
-    nome_usuario, id_usuario = obter_dados_usuario(username, perfil)
-    
-    if perfil == "Caixa":
-        tela_caixa(nome_usuario, id_usuario, root, tela_login, abrir_tela_perfil)
-    elif perfil == "Gerente":
-        tela_gerente(nome_usuario, id_usuario, root, tela_login, abrir_tela_perfil)
-    elif perfil == "Estoquista":
-        tela_estoquista(nome_usuario, id_usuario, root, tela_login, abrir_tela_perfil)
+def abrir_tela_perfil(perfil, username, senha):
+    usuario = autenticar_usuario(username, senha)  # Obter instância do usuário
+    if not usuario:
+        messagebox.showerror("Erro", "Usuário ou senha inválidos!")
+        return
+
+    if perfil == "Caixa" and isinstance(usuario, Caixa):
+        tela_caixa(usuario, root, tela_login, abrir_tela_perfil)
+    elif perfil == "Gerente" and isinstance(usuario, Gerente):
+        tela_gerente(usuario, root, tela_login, abrir_tela_perfil)
+    elif perfil == "Estoquista" and isinstance(usuario, Estoquista):
+        tela_estoquista(usuario, root, tela_login, abrir_tela_perfil)
     else:
-        tk.messagebox.showerror("Erro", "Perfil não encontrado!")
+        messagebox.showerror("Erro", "Perfil não encontrado ou inválido!")
+
 
 # Função principal
 def main():
@@ -38,8 +63,8 @@ def main():
     root = tk.Tk()
     root.withdraw()
 
-    tela_login(root, abrir_tela_perfil)
+    tela_login(root, abrir_tela_perfil)  # Passa a função de abertura de perfil para a tela de login
+
 
 if __name__ == "__main__":
     main()
-

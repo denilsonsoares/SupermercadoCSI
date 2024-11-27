@@ -21,7 +21,7 @@ def verificar_login(callback_login, login_window, event=None):
     if result:
         perfil = result[0]
         login_window.destroy()  # Fecha a janela de login
-        callback_login(perfil, username)  # Passa o perfil e o username para redirecionar
+        callback_login(perfil, username, senha)  # Passa o perfil e o username para redirecionar
     else:
         messagebox.showerror("Erro", "Usuário ou senha inválidos!")
 

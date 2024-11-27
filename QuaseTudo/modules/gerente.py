@@ -16,7 +16,7 @@ def alternar_tela_cheia(janela):
     estado_atual = janela.attributes("-fullscreen")
     janela.attributes("-fullscreen", not estado_atual)
 
-def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
+def tela_gerente(gerente, root, tela_login, abrir_tela_perfil):
     janela_gerente = tk.Toplevel()
     janela_gerente.title("Gerente - Quase-Tudo")
     janela_gerente.configure(bg="#f4f4f4")
@@ -81,7 +81,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
                 nome = entry_nome.get()
                 cpf = entry_cpf.get()
                 telefone = entry_telefone.get()
-                if cadastrar_cliente(nome, cpf, telefone):
+                if gerente.cadastrar_cliente(nome, cpf, telefone):
                     messagebox.showinfo("Sucesso", "Cliente cadastrado com sucesso!")
                     janela_cadastrar.destroy()
                     mostrar_gestao_clientes()
@@ -120,7 +120,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
                 nome = entry_nome.get()
                 cpf = entry_cpf.get()
                 telefone = entry_telefone.get()
-                if atualizar_cliente(cliente_id, nome, cpf, telefone):
+                if gerente.atualizar_cliente(cliente_id, nome, cpf, telefone):
                     messagebox.showinfo("Sucesso", "Cliente atualizado com sucesso!")
                     janela_atualizar.destroy()
                     mostrar_gestao_clientes()
@@ -137,7 +137,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
             cliente_id = tree.item(selected_item)['values'][0]
             resposta = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir este cliente?")
             if resposta:
-                if excluir_cliente(cliente_id):
+                if gerente.excluir_cliente(cliente_id):
                     messagebox.showinfo("Sucesso", "Cliente excluído com sucesso!")
                     mostrar_gestao_clientes()
                 else:
@@ -162,7 +162,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
         # Listar clientes que realizaram compras recentemente
         tk.Label(conteudo_atual, text="Clientes com Compras Recentes:", bg="white", font=("Arial", 14, "bold")).pack(
             pady=10)
-        clientes = clientes_compras_recentes(dias=30)
+        clientes = gerente.clientes_compras_recentes(dias=30)
         tree = ttk.Treeview(conteudo_atual, columns=("ID", "Nome", "CPF", "Telefone"), show="headings")
         tree.heading("ID", text="ID")
         tree.heading("Nome", text="Nome")
@@ -172,9 +172,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
         for cliente in clientes:
             tree.insert("", "end", values=cliente)
 
-
     def mostrar_gestao_usuarios():
-
         def adicionar_usuario_interface():
             janela_adicionar = tk.Toplevel(janela_gerente)
             janela_adicionar.title("Adicionar Usuário")
@@ -196,7 +194,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
                 username = entry_username.get()
                 senha = entry_senha.get()
                 perfil = combo_perfil.get()
-                if adicionar_usuario(username, senha, perfil):
+                if gerente.adicionar_usuario(username, senha, perfil):
                     messagebox.showinfo("Sucesso", "Usuário adicionado com sucesso!")
                     janela_adicionar.destroy()
                     mostrar_gestao_usuarios()
@@ -235,14 +233,9 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
                 senha = entry_senha.get()
                 perfil = combo_perfil.get()
                 if not senha:
-                    # Obter a senha atual do banco de dados
-                    conexao = conectar_banco()
-                    cursor = conexao.cursor()
-                    cursor.execute("SELECT senha FROM usuarios WHERE id = %s", (usuario_id,))
-                    senha = cursor.fetchone()[0]
-                    cursor.close()
-                    
-                if editar_usuario(usuario_id, username, senha, perfil):
+                    # Se a senha não foi alterada, mantenha a senha atual
+                    senha = None  # Handle this in your `editar_usuario` method
+                if gerente.editar_usuario(usuario_id, username, senha, perfil):
                     messagebox.showinfo("Sucesso", "Usuário atualizado com sucesso!")
                     janela_editar.destroy()
                     mostrar_gestao_usuarios()
@@ -259,7 +252,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
             usuario_id = tree.item(selected_item)['values'][0]
             resposta = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir este usuário?")
             if resposta:
-                if excluir_usuario(usuario_id):
+                if gerente.excluir_usuario(usuario_id):
                     messagebox.showinfo("Sucesso", "Usuário excluído com sucesso!")
                     mostrar_gestao_usuarios()
                 else:
@@ -282,7 +275,7 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
 
         # Listar usuários
         tk.Label(conteudo_atual, text="Lista de Usuários:", bg="white", font=("Arial", 14, "bold")).pack(pady=10)
-        usuarios = listar_usuarios()
+        usuarios = gerente.listar_usuarios()
         tree = ttk.Treeview(conteudo_atual, columns=("ID", "Username", "Perfil"), show="headings")
         tree.heading("ID", text="ID")
         tree.heading("Username", text="Username")
@@ -291,24 +284,21 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
         for usuario in usuarios:
             tree.insert("", "end", values=usuario)
 
-
-
-    #common views
-    # Funções para alternar o conteúdo
+    # Common Views
     def chamar_mostrar_fornecedores():
         nonlocal conteudo_atual
-        conteudo_atual = mostrar_fornecedores(conteudo_atual, frame_conteudo, janela_gerente)
+        conteudo_atual = gerente.mostrar_fornecedores(conteudo_atual, frame_conteudo, janela_gerente)
 
     def chamar_mostrar_estoque():
         nonlocal conteudo_atual
-        conteudo_atual = mostrar_estoque(conteudo_atual, frame_conteudo)
+        conteudo_atual = gerente.mostrar_estoque(conteudo_atual, frame_conteudo)
 
     def chamar_mostrar_gestao_produtos():
         nonlocal conteudo_atual
-        conteudo_atual = mostrar_gestao_produtos(conteudo_atual, frame_conteudo, janela_gerente)
+        conteudo_atual = gerente.mostrar_gestao_produtos(conteudo_atual, frame_conteudo, janela_gerente)
 
     def chamar_registrar_lote():
-        registrar_lote_interface(janela_gerente)
+        gerente.registrar_lote_interface(janela_gerente)
 
     # Menu Lateral - fixo à esquerda
     frame_menu = tk.Frame(janela_gerente, bg="#d3d3d3", width=200)
@@ -339,10 +329,10 @@ def tela_gerente(nome_gerente, id_gerente, root, tela_login, abrir_tela_perfil):
     atualizar_hora(label_data_hora)
 
     # Informações do usuário - alinhadas à direita
-    label_nome = tk.Label(frame_cabecalho, text=nome_gerente, bg="#e0e0e0", font=("Arial", 12, "bold"))
+    label_nome = tk.Label(frame_cabecalho, text=gerente.username, bg="#e0e0e0", font=("Arial", 12, "bold"))
     label_nome.place(relx=0.75, rely=0.5, anchor="e")  # Ajuste relx conforme necessário
 
-    label_id = tk.Label(frame_cabecalho, text=f"Gerente ID {id_gerente}", bg="#e0e0e0", font=("Arial", 10))
+    label_id = tk.Label(frame_cabecalho, text=f"Gerente ID {gerente.id_usuario}", bg="#e0e0e0", font=("Arial", 10))
     label_id.place(relx=0.85, rely=0.5, anchor="e")  # Ajuste relx conforme necessário
 
     imagem_usuario = Image.open(imagem_usuario_path).resize((30, 30), Image.LANCZOS)

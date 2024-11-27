@@ -751,6 +751,22 @@ def listar_produtos():
     finally:
         cursor.close()
 
+def remover_produto_por_id(produto_id):
+    conexao = ConexaoSingleton().conectar_banco()
+    if not conexao:
+        return False
+    cursor = conexao.cursor()
+    try:
+        cursor.execute('DELETE FROM produtos WHERE id = %s', (produto_id,))
+        conexao.commit()
+        return True
+    except Error as e:
+        print(f"Erro ao remover produto: {e}")
+        return False
+    finally:
+        cursor.close()
+
+
 # Funções de Lotes:
 
 def visualizar_lotes_produto(produto_id):
