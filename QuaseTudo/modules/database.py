@@ -111,6 +111,26 @@ def buscar_produtos(nome_produto):
     finally:
         cursor.close()
 
+def buscar_clientes(nome_cliente):
+    conexao = ConexaoSingleton().conectar_banco()
+    if conexao is None:
+        return []
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute('''
+            SELECT id, nome, cpf, telefone
+            FROM clientes
+            WHERE nome LIKE %s
+            ORDER BY nome ASC
+        ''', (f"%{nome_cliente}%",))
+        return cursor.fetchall()
+    except Error as e:
+        print(f"Erro ao buscar clientes: {e}")
+        return []
+    finally:
+        cursor.close()
+
 def buscar_lotes(lote_id, produto_id):
     conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:

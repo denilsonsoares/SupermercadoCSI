@@ -52,6 +52,7 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
     scrollbar = ttk.Scrollbar(tabela_frame, orient="vertical", command=tabela.yview)
     tabela.configure(yscroll=scrollbar.set)
     scrollbar.pack(side="right", fill="y")
+    cliente_selecionado = None
 
     def adicionar_produto():
         def atualizar_resultados(event=None):
@@ -226,17 +227,6 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
     botao_remover = tk.Button(frame_conteudo, text="Remover Produto", command=remover_produto)
     botao_remover.pack(pady=5)
 
-    cliente_frame = tk.Frame(frame_conteudo, bg="white")
-    cliente_frame.pack(pady=10)
-
-    cliente_label = tk.Label(
-        cliente_frame, text="Identificação do Cliente (Opcional):", font=("Arial", 12), bg="white"
-    )
-    cliente_label.pack(side="left")
-
-    cliente_entry = tk.Entry(cliente_frame, font=("Arial", 12), width=30)
-    cliente_entry.pack(side="left", padx=10)
-
     pagamento_frame = tk.Frame(frame_conteudo, bg="white")
     pagamento_frame.pack(pady=10)
 
@@ -259,6 +249,60 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
             font=("Arial", 12),
             bg="white",
         ).pack(anchor="w")
+    
+    def atualizar_resultados_clientes(event=None):
+        nome_cliente = cliente_entry.get()
+        resultados = buscar_clientes(nome_cliente)
+
+        for widget in frame_resultados.winfo_children():
+            widget.destroy()
+
+        if resultados:
+            for cliente in resultados:
+                cliente_id, cliente_nome, cliente_cpf, cliente_telefone = cliente
+                resultado_label = tk.Label(
+                    frame_resultados,
+                    text=f"{cliente_nome} - {cliente_cpf} - {cliente_telefone}",
+                    bg="white",
+                    anchor="w",
+                )
+                resultado_label.pack(fill="x", padx=50, pady=20)
+
+                # Bind selection to each label
+                resultado_label.bind(
+                    "<Button-1>",
+                    lambda e, c=cliente: selecionar_cliente(c),
+                )
+            # Function to select a customer
+        def selecionar_cliente(cliente):
+            nonlocal cliente_selecionado
+            cliente_id, cliente_nome, cliente_cpf, cliente_telefone = cliente
+            cliente_selecionado = cliente_id
+            cliente_entry.delete(0, tk.END)
+            cliente_entry.insert(0, f"{cliente_nome} - {cliente_cpf}")
+            for widget in frame_resultados.winfo_children():
+                widget.destroy()
+    
+    def validar_venda():
+        if pagamento_var.get() == "Crediário" and not cliente_selecionado:
+            messagebox.showerror("Erro", "Cliente é obrigatório para o Crediário!")
+            return False
+        return True
+
+    # Adding Customer Search
+    cliente_frame = tk.Frame(frame_conteudo, bg="white")
+    cliente_frame.pack(pady=10)
+
+    tk.Label(
+        cliente_frame, text="Pesquisar Cliente:", font=("Arial", 12), bg="white"
+    ).pack(side="left", padx=10)
+
+    cliente_entry = tk.Entry(cliente_frame, font=("Arial", 12), width=30)
+    cliente_entry.pack(side="left", padx=10)
+    cliente_entry.bind("<KeyRelease>", atualizar_resultados_clientes)
+
+    frame_resultados = tk.Frame(frame_conteudo, bg="white")
+    frame_resultados.pack(pady=10, padx=500, fill="both", expand=True)
 
     total_frame = tk.Frame(frame_conteudo, bg="white")
     total_frame.pack(pady=20)
@@ -283,9 +327,8 @@ def exibir_realizar_venda(frame_conteudo, vendedor_id):
     botoes_frame.pack(pady=20)
 
     def finalizar_venda():
-        cliente_id = cliente_entry.get().strip()
-        if pagamento_var.get() == "Crediário" and not cliente_id:
-            messagebox.showerror("Erro", "Identificação do cliente é obrigatória para o Crediário!")
+        cliente_id = cliente_selecionado
+        if not validar_venda():
             return
 
         itens = []
