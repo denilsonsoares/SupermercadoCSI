@@ -608,7 +608,244 @@ class Gerente(Usuario):
     def clientes_compras_recentes(self, dias=30):
         return clientes_compras_recentes(dias)
 
-    # Additional methods specific to Gerente can be added here
+    # GUI Methods
+
+    def mostrar_visao_geral(self, conteudo_atual, frame_conteudo):
+        if conteudo_atual:
+            conteudo_atual.destroy()
+        conteudo_atual = tk.Frame(frame_conteudo, bg="white")
+        conteudo_atual.pack(fill="both", expand=True)
+
+        tk.Label(conteudo_atual, text="Visão Geral", font=("Arial", 16, "bold"), bg="white").pack(pady=10)
+
+        # Resumo de vendas
+        resumo = resumo_vendas(periodo='dia')
+        if resumo:
+            total_faturado, numero_vendas, itens_vendidos = resumo[1], resumo[2], resumo[3]
+            tk.Label(conteudo_atual, text=f"Total Faturado Hoje: R$ {total_faturado}", bg="white",
+                     font=("Arial", 12)).pack(pady=5)
+            tk.Label(conteudo_atual, text=f"Número de Vendas: {numero_vendas}", bg="white", font=("Arial", 12)).pack(
+                pady=5)
+            tk.Label(conteudo_atual, text=f"Itens Vendidos: {itens_vendidos}", bg="white", font=("Arial", 12)).pack(
+                pady=5)
+        else:
+            tk.Label(conteudo_atual, text="Nenhuma venda registrada hoje.", bg="white", font=("Arial", 12)).pack(pady=5)
+
+        # Top 5 produtos mais vendidos
+        tk.Label(conteudo_atual, text="Top 5 Produtos Mais Vendidos Hoje:", bg="white",
+                 font=("Arial", 14, "bold")).pack(pady=10)
+        top_produtos = top_produtos_vendidos(periodo='dia')
+        for produto in top_produtos:
+            produto_nome, quantidade_vendida = produto[0], produto[1]
+            tk.Label(conteudo_atual, text=f"{produto_nome}: {quantidade_vendida} unidades", bg="white",
+                     font=("Arial", 12)).pack(anchor='w', padx=20)
+        return conteudo_atual
+
+    def mostrar_gestao_clientes(self, conteudo_atual, frame_conteudo, janela_principal):
+        if conteudo_atual:
+            conteudo_atual.destroy()
+        conteudo_atual = tk.Frame(frame_conteudo, bg="white")
+        conteudo_atual.pack(fill="both", expand=True)
+
+        tk.Label(conteudo_atual, text="Gestão de Clientes", font=("Arial", 16, "bold"), bg="white").pack(pady=10)
+
+        frame_acoes = tk.Frame(conteudo_atual, bg="white")
+        frame_acoes.pack(pady=10)
+
+        tk.Button(frame_acoes, text="Cadastrar Cliente",
+                  command=lambda: self.cadastrar_cliente_interface(janela_principal, conteudo_atual,
+                                                                   frame_conteudo)).pack(side="left", padx=5)
+        tk.Button(frame_acoes, text="Atualizar Cliente",
+                  command=lambda: self.atualizar_cliente_interface(conteudo_atual, frame_conteudo)).pack(side="left",
+                                                                                                         padx=5)
+        tk.Button(frame_acoes, text="Excluir Cliente",
+                  command=lambda: self.excluir_cliente_interface(conteudo_atual, frame_conteudo)).pack(side="left",
+                                                                                                       padx=5)
+
+        tk.Label(conteudo_atual, text="Clientes com Compras Recentes:", bg="white", font=("Arial", 14, "bold")).pack(
+            pady=10)
+        clientes = self.clientes_compras_recentes(dias=30)
+        self.tree_clientes = ttk.Treeview(conteudo_atual, columns=("ID", "Nome", "CPF", "Telefone"), show="headings")
+        self.tree_clientes.heading("ID", text="ID")
+        self.tree_clientes.heading("Nome", text="Nome")
+        self.tree_clientes.heading("CPF", text="CPF")
+        self.tree_clientes.heading("Telefone", text="Telefone")
+        self.tree_clientes.pack(fill="both", expand=True)
+        for cliente in clientes:
+            self.tree_clientes.insert("", "end", values=cliente)
+
+        return conteudo_atual
+
+    def cadastrar_cliente_interface(self, janela_principal, conteudo_atual, frame_conteudo):
+        janela_cadastrar = tk.Toplevel(janela_principal)
+        janela_cadastrar.title("Cadastrar Cliente")
+        janela_cadastrar.geometry("300x200")
+
+        tk.Label(janela_cadastrar, text="Nome:").pack()
+        entry_nome = tk.Entry(janela_cadastrar)
+        entry_nome.pack()
+
+        tk.Label(janela_cadastrar, text="CPF:").pack()
+        entry_cpf = tk.Entry(janela_cadastrar)
+        entry_cpf.pack()
+
+        tk.Label(janela_cadastrar, text="Telefone:").pack()
+        entry_telefone = tk.Entry(janela_cadastrar)
+        entry_telefone.pack()
+
+        def salvar_cliente():
+            nome = entry_nome.get()
+            cpf = entry_cpf.get()
+            telefone = entry_telefone.get()
+            if self.cadastrar_cliente(nome, cpf, telefone):
+                messagebox.showinfo("Sucesso", "Cliente cadastrado com sucesso!")
+                janela_cadastrar.destroy()
+                # Refresh the client management view
+                self.mostrar_gestao_clientes(conteudo_atual, frame_conteudo, janela_principal)
+            else:
+                messagebox.showerror("Erro", "Erro ao cadastrar cliente.")
+
+        tk.Button(janela_cadastrar, text="Salvar", command=salvar_cliente).pack(pady=10)
+
+    def atualizar_cliente_interface(self, conteudo_atual, frame_conteudo):
+        selected_item = self.tree_clientes.focus()  # Use self.tree_clientes
+        if not selected_item:
+            messagebox.showwarning("Aviso", "Selecione um cliente para atualizar.")
+            return
+        cliente_id, nome_atual, cpf_atual, telefone_atual = self.tree_clientes.item(selected_item)['values']
+
+        janela_atualizar = tk.Toplevel()
+        janela_atualizar.title("Atualizar Cliente")
+        janela_atualizar.geometry("300x200")
+
+        tk.Label(janela_atualizar, text="Nome:").pack()
+        entry_nome = tk.Entry(janela_atualizar)
+        entry_nome.insert(0, nome_atual)
+        entry_nome.pack()
+
+        tk.Label(janela_atualizar, text="CPF:").pack()
+        entry_cpf = tk.Entry(janela_atualizar)
+        entry_cpf.insert(0, cpf_atual)
+        entry_cpf.pack()
+
+        tk.Label(janela_atualizar, text="Telefone:").pack()
+        entry_telefone = tk.Entry(janela_atualizar)
+        entry_telefone.insert(0, telefone_atual)
+        entry_telefone.pack()
+
+        def salvar_alteracoes():
+            nome = entry_nome.get()
+            cpf = entry_cpf.get()
+            telefone = entry_telefone.get()
+            if self.atualizar_cliente(cliente_id, nome, cpf, telefone):  # Use self
+                messagebox.showinfo("Sucesso", "Cliente atualizado com sucesso!")
+                janela_atualizar.destroy()
+                self.mostrar_gestao_clientes(conteudo_atual, frame_conteudo, None)  # Use self
+            else:
+                messagebox.showerror("Erro", "Erro ao atualizar cliente.")
+
+        tk.Button(janela_atualizar, text="Salvar", command=salvar_alteracoes).pack(pady=10)
+
+    def excluir_cliente_interface(self, conteudo_atual, frame_conteudo):
+        selected_item = self.tree_clientes.focus()  # Use self.tree_clientes
+        if not selected_item:
+            messagebox.showwarning("Aviso", "Selecione um cliente para excluir.")
+            return
+        cliente_id = self.tree_clientes.item(selected_item)['values'][0]
+        resposta = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir este cliente?")
+        if resposta:
+            if self.excluir_cliente(cliente_id):  # Use self
+                messagebox.showinfo("Sucesso", "Cliente excluído com sucesso!")
+                self.mostrar_gestao_clientes(conteudo_atual, frame_conteudo, None)  # Use self
+            else:
+                messagebox.showerror("Erro", "Erro ao excluir cliente.")
+
+    # Additional methods for user interfaces
+    def adicionar_usuario_interface(self, janela_principal, conteudo_atual, frame_conteudo):
+        janela_adicionar = tk.Toplevel(janela_principal)
+        janela_adicionar.title("Adicionar Usuário")
+        janela_adicionar.geometry("300x250")
+
+        tk.Label(janela_adicionar, text="Username:").pack()
+        entry_username = tk.Entry(janela_adicionar)
+        entry_username.pack()
+
+        tk.Label(janela_adicionar, text="Senha:").pack()
+        entry_senha = tk.Entry(janela_adicionar, show="*")
+        entry_senha.pack()
+
+        tk.Label(janela_adicionar, text="Perfil:").pack()
+        combo_perfil = ttk.Combobox(janela_adicionar, values=["Caixa", "Gerente", "Estoquista"])
+        combo_perfil.pack()
+
+        def salvar_usuario():
+            username = entry_username.get()
+            senha = entry_senha.get()
+            perfil = combo_perfil.get()
+            if self.adicionar_usuario(username, senha, perfil):  # Use self
+                messagebox.showinfo("Sucesso", "Usuário adicionado com sucesso!")
+                janela_adicionar.destroy()
+                self.mostrar_gestao_usuarios(conteudo_atual, frame_conteudo, None)  # Use self
+            else:
+                messagebox.showerror("Erro", "Erro ao adicionar usuário.")
+
+        tk.Button(janela_adicionar, text="Salvar", command=salvar_usuario).pack(pady=10)
+
+    def editar_usuario_interface(self, conteudo_atual, frame_conteudo):
+        selected_item = self.tree_usuarios.focus()  # Use self.tree_usuarios
+        if not selected_item:
+            messagebox.showwarning("Aviso", "Selecione um usuário para editar.")
+            return
+        usuario_id, username_atual, perfil_atual = self.tree_usuarios.item(selected_item)['values']
+
+        janela_editar = tk.Toplevel()
+        janela_editar.title("Editar Usuário")
+        janela_editar.geometry("300x250")
+
+        tk.Label(janela_editar, text="Username:").pack()
+        entry_username = tk.Entry(janela_editar)
+        entry_username.insert(0, username_atual)
+        entry_username.pack()
+
+        tk.Label(janela_editar, text="Senha (deixe em branco para não alterar):").pack()
+        entry_senha = tk.Entry(janela_editar, show="*")
+        entry_senha.pack()
+
+        tk.Label(janela_editar, text="Perfil:").pack()
+        combo_perfil = ttk.Combobox(janela_editar, values=["Caixa", "Gerente", "Estoquista"])
+        combo_perfil.set(perfil_atual)
+        combo_perfil.pack()
+
+        def salvar_alteracoes():
+            username = entry_username.get()
+            senha = entry_senha.get()
+            perfil = combo_perfil.get()
+            if not senha:
+                # Se a senha não foi alterada, mantenha a senha atual
+                senha = None
+            if self.editar_usuario(usuario_id, username, senha, perfil):  # Use self.editar_usuario
+                messagebox.showinfo("Sucesso", "Usuário atualizado com sucesso!")
+                janela_editar.destroy()
+                self.mostrar_gestao_usuarios(conteudo_atual, frame_conteudo)  # Use self para chamar o método
+            else:
+                messagebox.showerror("Erro", "Erro ao atualizar usuário.")
+
+        tk.Button(janela_editar, text="Salvar", command=salvar_alteracoes).pack(pady=10)
+
+    def excluir_usuario_interface(self, conteudo_atual, frame_conteudo):
+        selected_item = self.tree_usuarios.focus()  # Use self.tree_usuarios
+        if not selected_item:
+            messagebox.showwarning("Aviso", "Selecione um usuário para excluir.")
+            return
+        usuario_id = self.tree_usuarios.item(selected_item)['values'][0]
+        resposta = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir este usuário?")
+        if resposta:
+            if self.excluir_usuario(usuario_id):  # Use self.excluir_usuario
+                messagebox.showinfo("Sucesso", "Usuário excluído com sucesso!")
+                self.mostrar_gestao_usuarios(conteudo_atual, frame_conteudo)  # Use self
+            else:
+                messagebox.showerror("Erro", "Erro ao excluir usuário.")
+
 
 class Estoquista(Usuario):
     def __init__(self, id_usuario, username, senha):
