@@ -15,7 +15,7 @@ class ConexaoSingleton:
         try:
             if self._conexao is None or not self._conexao.is_connected():
                 self._conexao = mysql.connector.connect(
-                    host="192.168.51.119",
+                    host="localhost",
                     user="root",
                     password="Banana33@5",
                     database="quase_tudo"

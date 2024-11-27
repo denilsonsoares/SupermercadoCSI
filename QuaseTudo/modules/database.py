@@ -52,7 +52,7 @@ def reduzir_quantidade_lote(lote_id, quantidade_vendida):
 
 
 # Função para adicionar um produto ao estoque
-def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade):
+def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_de_medida_id, preco_por_unidade):
     conexao = ConexaoSingleton().conectar_banco()
     if conexao is None:
         return False
@@ -60,9 +60,9 @@ def adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_
 
     try:
         cursor.execute('''
-            INSERT INTO produtos (Produto, Marca_id, tipo_id, unidade_medida_id, preco_por_unidade)
+            INSERT INTO produtos (Produto, Marca_id, tipo_id, unidade_de_medida_id, preco_por_unidade)
             VALUES (%s, %s, %s, %s, %s)
-        ''', (nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade))
+        ''', (nome_produto, marca_id, tipo_id, unidade_de_medida_id, preco_por_unidade))
         conexao.commit()
         return True
     except Error as e:
@@ -694,8 +694,8 @@ def listar_usuarios():
 
 # Funções para Gestão de Produtos
 
-def cadastrar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade):
-    return adicionar_produto(nome_produto, marca_id, tipo_id, unidade_medida_id, preco_por_unidade)
+def cadastrar_produto(nome_produto, marca_id, tipo_id, unidade_de_medida_id, preco_por_unidade):
+    return adicionar_produto(nome_produto, marca_id, tipo_id, unidade_de_medida_id, preco_por_unidade)
 
 def atualizar_preco_produto(produto_id, novo_preco):
     conexao = ConexaoSingleton().conectar_banco()
