@@ -1,6 +1,6 @@
-Aqui está um exemplo de como poderia ser o `README.md` para o código fornecido, incluindo figurinhas e formatação para torná-lo mais atrativo:
-
 ```markdown
+# Seja bem vindo ao códgio do Quase Tudo! Um sistema de gerenciamento de estoque para supermercados. Esse sistema foi desenvolvido empython e possui as seguintes funcionalidades:
+
 # Sistema de Gestão de Perfis
 
 Este é um sistema simples de gestão de usuários, onde o perfil do usuário determina a tela que será exibida. O sistema utiliza a biblioteca `tkinter` para a interface gráfica e realiza a conexão com um banco de dados MySQL para buscar as informações do usuário.
@@ -102,24 +102,6 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-
-## Capturas de Tela
-
-### Tela de Login
-
-![Tela de Login](https://via.placeholder.com/500x300?text=Tela+de+Login)
-
-### Tela de Caixa
-
-![Tela de Caixa](https://via.placeholder.com/500x300?text=Tela+de+Caixa)
-
-### Tela de Gerente
-
-![Tela de Gerente](https://via.placeholder.com/500x300?text=Tela+de+Gerente)
-
-### Tela de Estoquista
-
-![Tela de Estoquista](https://via.placeholder.com/500x300?text=Tela+de+Estoquista)
 
 ## Contribuições
 
