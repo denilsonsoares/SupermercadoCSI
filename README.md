@@ -1,4 +1,4 @@
-```markdown
+
 # Seja bem vindo ao códgio do Quase Tudo! Um sistema de gerenciamento de estoque para supermercados. Esse sistema foi desenvolvido empython e possui as seguintes funcionalidades:
 
 # Sistema de Gestão de Perfis
@@ -22,7 +22,7 @@ Este é um sistema simples de gestão de usuários, onde o perfil do usuário de
 
 ## Estrutura do Projeto
 
-```
+
 .
 ├── modules/
 │   ├── login.py        # Tela de Login
